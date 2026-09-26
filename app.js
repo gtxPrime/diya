@@ -13,9 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoaderAndHeroAnimation();
   initHeroAnimations();
   initQuickStatsCountup();
+  initProofsExpand();
   initServicesAccordion();
   initWorkTabs();
-  initToolsSection();
   initJourneyTabs();
   initFaqAccordion();
   initTestimonialsSlider();
@@ -447,6 +447,88 @@ function initQuickStatsCountup() {
 }
 
 /* --------------------------------------------------------------------------
+   5.5. RESULTS PROOFS EXPAND / COLLAPSE (Max 1 row = 3 proofs by default)
+   -------------------------------------------------------------------------- */
+function initProofsExpand() {
+  const proofsWrap = document.querySelector('.rs-proofs');
+  const expandWrap = document.querySelector('.nk-proofs-expand-wrap');
+  const resultsSection = document.querySelector('#results');
+  if (!proofsWrap || !expandWrap) return;
+
+  const proofCards = Array.from(proofsWrap.querySelectorAll('.rs-proof'));
+  const totalCount = proofCards.length;
+  const PROOFS_ROW_LIMIT = 3; // 3 items = exactly 1 row on desktop (3-column grid)
+
+  if (totalCount <= PROOFS_ROW_LIMIT) return;
+
+  let isProofsExpanded = false;
+
+  function updateView() {
+    proofCards.forEach((card, index) => {
+      if (index >= PROOFS_ROW_LIMIT) {
+        card.style.display = isProofsExpanded ? 'flex' : 'none';
+      }
+    });
+
+    if (!isProofsExpanded) {
+      expandWrap.innerHTML = `
+        <button type="button" class="nk-work-expand-btn" id="proofsExpandBtn" aria-expanded="false">
+          <span class="nk-work-expand-text">Explore All ${totalCount} Receipts & Proofs</span>
+          <span class="nk-work-expand-icon" aria-hidden="true">↓</span>
+        </button>
+        <span class="nk-work-expand-badge">Showing 3 of ${totalCount} receipts (1 row)</span>
+      `;
+    } else {
+      expandWrap.innerHTML = `
+        <button type="button" class="nk-work-expand-btn is-collapsed-btn" id="proofsExpandBtn" aria-expanded="true">
+          <span class="nk-work-expand-text">Show Less</span>
+          <span class="nk-work-expand-icon" aria-hidden="true">↑</span>
+        </button>
+        <span class="nk-work-expand-badge">Showing all ${totalCount} receipts</span>
+      `;
+    }
+
+    const btn = expandWrap.querySelector('#proofsExpandBtn');
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleProofs();
+      });
+    }
+
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+    if (window.lenis) window.lenis.resize();
+  }
+
+  function toggleProofs() {
+    isProofsExpanded = !isProofsExpanded;
+    updateView();
+
+    if (window.gsap) {
+      if (isProofsExpanded) {
+        const revealedCards = proofCards.slice(PROOFS_ROW_LIMIT);
+        window.gsap.fromTo(revealedCards,
+          { opacity: 0, y: 20, scale: 0.98 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.38, stagger: 0.05, ease: "back.out(1.2)" }
+        );
+      } else {
+        if (resultsSection) {
+          const topY = resultsSection.getBoundingClientRect().top + window.scrollY - 80;
+          if (window.lenis) {
+            window.lenis.scrollTo(topY, { duration: 0.5 });
+          } else {
+            window.scrollTo({ top: topY, behavior: 'smooth' });
+          }
+        }
+      }
+    }
+  }
+
+  // Initial render (collapsed: 3 proofs in 1 row)
+  updateView();
+}
+
+/* --------------------------------------------------------------------------
    6. SERVICES ACCORDION & GENERAL ACCORDION ENGINE
    -------------------------------------------------------------------------- */
 function setupSmoothAccordion(container, itemsData) {
@@ -704,14 +786,19 @@ function renderWorkCover(piece, no, drawerKey) {
 }
 
 function initWorkTabs() {
+  const workSection = document.querySelector('#work.nk-work');
   const tabsWrap = document.querySelector('.nk-work .nk-tabs');
   const piecesWrap = document.querySelector('.nk-work .nk-pieces');
   const blurbEl = document.querySelector('.nk-drawer-blurb');
+  let expandWrap = document.querySelector('.nk-work .nk-work-expand-wrap');
+
   if (!tabsWrap || !piecesWrap) return;
 
-  // Clean up any extraneous expand wrapper left from prior revisions
-  const priorExpandWrap = document.querySelector('.nk-work .nk-work-expand-wrap');
-  if (priorExpandWrap) priorExpandWrap.remove();
+  if (!expandWrap && workSection) {
+    expandWrap = document.createElement('div');
+    expandWrap.className = 'nk-work-expand-wrap';
+    piecesWrap.after(expandWrap);
+  }
 
   // Compute issue number offsets across all 7 drawers (total 58 pieces)
   const offsets = {};
@@ -722,7 +809,9 @@ function initWorkTabs() {
   });
 
   let currentKey = drawers[0].key;
+  let isWorkExpanded = false; // Default: show max 1 row
   let isTransitioning = false;
+  const ROW_LIMIT = 3;
 
   // Render drawer category chips dynamically
   tabsWrap.innerHTML = drawers.map((d, i) => `
@@ -732,13 +821,23 @@ function initWorkTabs() {
   `).join('');
 
   // Function to build HTML string and container class for a category
-  function buildContent(key) {
+  function buildContent(key, expanded) {
     const drawer = drawers.find(d => d.key === key) || drawers[0];
+    const totalCount = drawer.pieces.length;
+    const items = (!expanded && totalCount > ROW_LIMIT)
+      ? drawer.pieces.slice(0, ROW_LIMIT)
+      : drawer.pieces;
+
+    if (workSection) {
+      workSection.classList.toggle('is-collapsed', !expanded);
+    }
 
     if (key === 'pop') {
       return {
         isPop: true,
-        html: drawer.pieces.map((p, i) => `
+        totalCount,
+        hasMore: totalCount > ROW_LIMIT,
+        html: items.map((p, i) => `
           <a class="pop-tile r${i % 3}" href="${linkFor('Pop-culture copies')}" target="_blank" rel="noopener noreferrer">
             <img src="${POP_IMAGES[i]}" alt="Pop-culture copy: ${escapeHtml(p.title)}" loading="lazy">
             <span class="pop-cap">
@@ -752,9 +851,11 @@ function initWorkTabs() {
 
     return {
       isPop: false,
-      html: drawer.pieces.map((p, i) => {
+      totalCount,
+      hasMore: totalCount > ROW_LIMIT,
+      html: items.map((p, i) => {
         const issueNo = offsets[key] + i + 1;
-        const isLead = i === 0;
+        const isLead = expanded && i === 0;
         const coverHtml = renderWorkCover(p, issueNo, key);
         const href = linkFor(p.title);
         const linkText = (href === PORTFOLIO_ROOT) ? 'Browse the portfolio' : 'See the work';
@@ -775,12 +876,91 @@ function initWorkTabs() {
     };
   }
 
-  // Smooth tab switch animation (no jump)
+  // Update Expand / Collapse button state
+  function updateExpandButton(hasMore, totalCount) {
+    if (!expandWrap) return;
+    if (!hasMore) {
+      expandWrap.innerHTML = '';
+      return;
+    }
+
+    const drawer = drawers.find(d => d.key === currentKey);
+    const categoryName = drawer ? drawer.label.split('(')[0].trim() : 'Pieces';
+
+    if (!isWorkExpanded) {
+      expandWrap.innerHTML = `
+        <button type="button" class="nk-work-expand-btn" id="workExpandBtn" aria-expanded="false">
+          <span class="nk-work-expand-text">Explore All ${totalCount} ${escapeHtml(categoryName)}</span>
+          <span class="nk-work-expand-icon" aria-hidden="true">↓</span>
+        </button>
+        <span class="nk-work-expand-badge">Showing 3 of ${totalCount} pieces (1 row)</span>
+      `;
+    } else {
+      expandWrap.innerHTML = `
+        <button type="button" class="nk-work-expand-btn is-collapsed-btn" id="workExpandBtn" aria-expanded="true">
+          <span class="nk-work-expand-text">Show Less</span>
+          <span class="nk-work-expand-icon" aria-hidden="true">↑</span>
+        </button>
+        <span class="nk-work-expand-badge">Showing all ${totalCount} pieces</span>
+      `;
+    }
+
+    const btn = expandWrap.querySelector('#workExpandBtn');
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleExpand();
+      });
+    }
+  }
+
+  // Toggle expand/collapse with smooth GSAP animations
+  function toggleExpand() {
+    isWorkExpanded = !isWorkExpanded;
+    const built = buildContent(currentKey, isWorkExpanded);
+
+    if (!isWorkExpanded) {
+      // Collapsing back to 1 row
+      piecesWrap.innerHTML = built.html;
+      updateExpandButton(built.hasMore, built.totalCount);
+      if (window.gsap) {
+        window.gsap.fromTo(piecesWrap.children,
+          { opacity: 0.6, y: -8 },
+          { opacity: 1, y: 0, duration: 0.28, stagger: 0.03, ease: "power2.out" }
+        );
+      }
+      // Smoothly scroll back to tabs so view is centered
+      if (workSection) {
+        const topY = workSection.getBoundingClientRect().top + window.scrollY - 80;
+        if (window.lenis) {
+          window.lenis.scrollTo(topY, { duration: 0.5 });
+        } else {
+          window.scrollTo({ top: topY, behavior: 'smooth' });
+        }
+      }
+    } else {
+      // Expanding to show all cards
+      piecesWrap.innerHTML = built.html;
+      updateExpandButton(built.hasMore, built.totalCount);
+      if (window.gsap) {
+        const newCards = Array.from(piecesWrap.children).slice(ROW_LIMIT);
+        window.gsap.fromTo(newCards,
+          { opacity: 0, y: 22, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.42, stagger: 0.035, ease: "back.out(1.2)" }
+        );
+      }
+    }
+
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+    if (window.lenis) window.lenis.resize();
+  }
+
+  // Smooth tab switch animation (resets to collapsed 1-row by default)
   function switchTab(key) {
     if (isTransitioning || key === currentKey) return;
     isTransitioning = true;
+    isWorkExpanded = false; // Always default to max 1 row on category switch
 
-    // Update active tab buttons immediately with tactile bounce
     tabsWrap.querySelectorAll('button').forEach(btn => {
       const isSelected = btn.dataset.key === key;
       btn.classList.toggle('is-on', isSelected);
@@ -794,31 +974,29 @@ function initWorkTabs() {
     const oldCards = Array.from(piecesWrap.children);
 
     if (window.gsap && oldCards.length > 0) {
-      // 1. Smoothly animate out current cards & blurb
       const tl = window.gsap.timeline({
         onComplete: () => {
-          // 2. Swap DOM content during the invisible transition point
           currentKey = key;
-          const built = buildContent(key);
+          const built = buildContent(key, isWorkExpanded);
           piecesWrap.className = built.isPop ? 'pop-wall' : 'nk-pieces';
           piecesWrap.innerHTML = built.html;
           if (blurbEl) blurbEl.textContent = nextDrawer.blurb;
+          updateExpandButton(built.hasMore, built.totalCount);
 
-          // 3. Stagger animate in newly rendered cards
           const newCards = Array.from(piecesWrap.children);
           window.gsap.fromTo(newCards,
-            { opacity: 0, y: 26, scale: 0.97 },
+            { opacity: 0, y: 22, scale: 0.97 },
             {
               opacity: 1,
               y: 0,
               scale: 1,
-              duration: 0.44,
+              duration: 0.4,
               stagger: 0.04,
               ease: "back.out(1.2)",
               onComplete: () => {
                 isTransitioning = false;
                 if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-                if (lenis) lenis.resize();
+                if (window.lenis) window.lenis.resize();
               }
             }
           );
@@ -834,9 +1012,9 @@ function initWorkTabs() {
 
       tl.to(oldCards, {
         opacity: 0,
-        y: -14,
+        y: -12,
         scale: 0.98,
-        duration: 0.2,
+        duration: 0.18,
         stagger: 0.015,
         ease: "power2.in"
       }, 0);
@@ -845,28 +1023,29 @@ function initWorkTabs() {
         tl.to(blurbEl, {
           opacity: 0,
           y: -6,
-          duration: 0.16,
+          duration: 0.15,
           ease: "power2.in"
         }, 0);
       }
     } else {
-      // Fallback if GSAP is unavailable
       currentKey = key;
-      const built = buildContent(key);
+      const built = buildContent(key, isWorkExpanded);
       piecesWrap.className = built.isPop ? 'pop-wall' : 'nk-pieces';
       piecesWrap.innerHTML = built.html;
       if (blurbEl) blurbEl.textContent = nextDrawer.blurb;
+      updateExpandButton(built.hasMore, built.totalCount);
       isTransitioning = false;
       if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-      if (lenis) lenis.resize();
+      if (window.lenis) window.lenis.resize();
     }
   }
 
-  // Initial render of first category
-  const initialBuilt = buildContent(currentKey);
+  // Initial render of first category (collapsed: max 1 row)
+  const initialBuilt = buildContent(currentKey, isWorkExpanded);
   piecesWrap.className = initialBuilt.isPop ? 'pop-wall' : 'nk-pieces';
   piecesWrap.innerHTML = initialBuilt.html;
   if (blurbEl) blurbEl.textContent = drawers[0].blurb;
+  updateExpandButton(initialBuilt.hasMore, initialBuilt.totalCount);
 
   // Tab click event delegation
   tabsWrap.addEventListener('click', (e) => {
@@ -898,293 +1077,60 @@ function resolveImage(key) {
 }
 
 /* --------------------------------------------------------------------------
-   7b. TOOLS & FRAMEWORKS INTERACTIVE BENTO CONSOLE
-   -------------------------------------------------------------------------- */
-const CORE_TOOLS_DATA = [
-  { name: "ChatGPT", role: "LLM & Ideation" },
-  { name: "Claude", role: "Reasoning & Longform" },
-  { name: "SEMrush", role: "SEO & Competitor Intel" },
-  { name: "Ahrefs", role: "Backlink Research" },
-  { name: "GA4", role: "Web Analytics" },
-  { name: "Search Console", role: "Organic Performance" },
-  { name: "Google Ads", role: "Search PPC" },
-  { name: "Meta Business Suite", role: "Paid Social" },
-  { name: "WordPress", role: "CMS & Architecture" },
-  { name: "Canva", role: "Rapid Design" },
-  { name: "Notion", role: "Knowledge Engine" },
-  { name: "HubSpot", role: "Inbound & CRM" }
-];
-
-const TOOLBOX_GROUPS_DATA = [
-  {
-    category: "AI Engines & Research",
-    tools: ["Gemini", "Perplexity", "NotebookLM", "Jasper", "Copy.ai", "Writesonic", "Notion AI", "Midjourney", "Ideogram"]
-  },
-  {
-    category: "SEO, Data & Search Intelligence",
-    tools: ["Grammarly", "Originality.ai", "Copyleaks", "Ubersuggest", "SurferSEO", "Yoast", "Google Trends", "Keyword Planner", "Tag Manager", "Meta Ads Library"]
-  },
-  {
-    category: "Publishing, Newsletters & Web",
-    tools: ["Elementor", "Beehiiv", "Substack", "Medium", "Wix", "Figma"]
-  },
-  {
-    category: "Creative Production & Ops",
-    tools: ["CapCut", "Premiere Pro", "Illustrator", "Slack", "Trello", "Airtable", "ClickUp", "Google Workspace", "Excel"]
-  }
-];
-
-const STRATEGIC_FRAMEWORKS_DATA = [
-  { name: "Copy", items: ["AIDA", "PAS", "FAB", "PASTOR", "hooks", "direct response", "UX writing"] },
-  { name: "SEO", items: ["E‑E‑A‑T", "intent mapping", "topic clusters", "entity SEO", "AEO", "GEO"] },
-  { name: "Funnels", items: ["TOFU‑MOFU‑BOFU", "Hero‑Hub-Help", "pillars", "territories"] },
-  { name: "Business", items: ["STP", "4Ps/7Ps", "PESTLE", "Porter", "Blue Ocean", "GTM", "CAC & contribution margin"] },
-  { name: "Psychology", items: ["Barnum effect", "FOMO", "social proof", "reciprocity", "insight mining"] },
-  { name: "Culture", items: ["Moment marketing", "trend hijacking", "memes", "UGC", "guerrilla", "experiential"] }
-];
-
-function initToolsSection() {
-  const tabsWrap = document.querySelector('.nk-tools-tabs');
-  const contentEl = document.querySelector('#toolsContent');
-  if (!tabsWrap || !contentEl) return;
-
-  let currentView = 'bento';
-  let isTransitioning = false;
-
-  function renderToolsView(view) {
-    if (view === 'core') {
-      return `
-        <div class="tb-focused-wrap">
-          <div class="tb-focused-head">
-            <span class="tb-tag">THE NON-NEGOTIABLES</span>
-            <h3>Core Technology Stack (12)</h3>
-            <p>The daily driver tools powering client campaigns, research, analytics, and content production.</p>
-          </div>
-          <div class="tb-core-cards-grid">
-            ${CORE_TOOLS_DATA.map((t, i) => `
-              <div class="tb-core-item ${i % 2 === 0 ? 'is-yellow' : 'is-purple'}">
-                <span class="tb-core-num">${String(i + 1).padStart(2, '0')}</span>
-                <span class="tb-core-role">${escapeHtml(t.role)}</span>
-                <h4>${escapeHtml(t.name)}</h4>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    }
-
-    if (view === 'toolbox') {
-      return `
-        <div class="tb-focused-wrap">
-          <div class="tb-focused-head">
-            <span class="tb-tag">SPECIALIZED ARSENAL</span>
-            <h3>Extended Toolbox Ecosystem (34 Tools)</h3>
-            <p>Categorized into specialized operational workflows for AI generation, technical SEO, publishing &amp; asset production.</p>
-          </div>
-          <div class="tb-cat-grid">
-            ${TOOLBOX_GROUPS_DATA.map(g => `
-              <div class="tb-cat-box">
-                <div class="tb-cat-header">
-                  <h4>${escapeHtml(g.category)}</h4>
-                  <span class="tb-cat-badge">${g.tools.length} Tools</span>
-                </div>
-                <div class="tb-cat-cloud">
-                  ${g.tools.map(tool => `<span>${escapeHtml(tool)}</span>`).join('')}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    }
-
-    if (view === 'frameworks') {
-      return `
-        <div class="tb-focused-wrap">
-          <div class="tb-focused-head">
-            <span class="tb-tag">METHODOLOGY &amp; THINKING</span>
-            <h3>Strategic Frameworks (6 Models)</h3>
-            <p>The mental models, persuasion formulas, and marketing architectures applied across every deliverable.</p>
-          </div>
-          <div class="tb-fw-expanded-grid">
-            ${STRATEGIC_FRAMEWORKS_DATA.map((f, i) => `
-              <div class="tb-fw-card">
-                <div class="tb-fw-top">
-                  <span class="tb-fw-num">0${i + 1}</span>
-                  <h4>${escapeHtml(f.name)}</h4>
-                </div>
-                <div class="tb-fw-pills">
-                  ${f.items.map(item => `<span>${escapeHtml(item)}</span>`).join('')}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          <div class="tb-lang-strip is-expanded">
-            <span class="tb-lang-label">Languages Known &amp; Written:</span>
-            <div class="tb-lang-pills">
-              <span>English</span><span>Hindi</span><span>Marathi</span><span>Gujarati</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    // Default: Bento Grid (Overview)
-    return `
-      <div class="tb-bento">
-        <!-- Left Column: 46 Tools (Core Stack + Extended Toolbox) -->
-        <div class="tb-card tb-tools-col">
-          <div class="tb-card-header">
-            <div class="tb-title-wrap">
-              <span class="tb-tag">STACK CONSOLE</span>
-              <h3>Tools &amp; Tech Stack</h3>
-            </div>
-            <span class="tb-count-badge">46 Tools</span>
-          </div>
-
-          <!-- Core Stack Sub-panel -->
-          <div class="tb-subpanel">
-            <div class="tb-sub-head">
-              <span class="tb-sub-label">CORE STACK</span>
-              <span class="tb-sub-note">The non-negotiables (12)</span>
-            </div>
-            <div class="core-stack">
-              <span>ChatGPT</span><span>Claude</span><span>SEMrush</span><span>Ahrefs</span><span>GA4</span><span>Search Console</span><span>Google Ads</span><span>Meta Business Suite</span><span>WordPress</span><span>Canva</span><span>Notion</span><span>HubSpot</span>
-            </div>
-          </div>
-
-          <!-- Extended Toolbox Sub-panel -->
-          <div class="tb-subpanel tb-toolbox-sub">
-            <div class="tb-sub-head">
-              <span class="tb-sub-label">EXTENDED TOOLBOX</span>
-              <span class="tb-sub-note">34 AI, Content, CMS &amp; Ops tools</span>
-            </div>
-            <div class="nk-tools-cloud">
-              <span>Gemini</span><span>Perplexity</span><span>NotebookLM</span><span>Jasper</span><span>Copy.ai</span><span>Writesonic</span><span>Notion AI</span><span>Midjourney</span><span>Ideogram</span><span>Grammarly</span><span>Originality.ai</span><span>Copyleaks</span><span>Ubersuggest</span><span>SurferSEO</span><span>Yoast</span><span>Google Trends</span><span>Keyword Planner</span><span>Tag Manager</span><span>Meta Ads Library</span><span>Elementor</span><span>Beehiiv</span><span>Substack</span><span>Medium</span><span>Wix</span><span>Figma</span><span>CapCut</span><span>Premiere Pro</span><span>Illustrator</span><span>Slack</span><span>Trello</span><span>Airtable</span><span>ClickUp</span><span>Google Workspace</span><span>Excel</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Column: Strategic Frameworks & Languages -->
-        <div class="tb-card tb-frameworks-col">
-          <div class="tb-card-header">
-            <div class="tb-title-wrap">
-              <span class="tb-tag">METHODOLOGY</span>
-              <h3>Strategic Frameworks</h3>
-            </div>
-            <span class="tb-count-badge">6 Models</span>
-          </div>
-
-          <div class="nk-frameworks">
-            <div class="fw-item"><strong class="fw-badge">Copy</strong><span class="fw-text">AIDA, PAS, FAB, PASTOR, hooks, direct response, UX writing</span></div>
-            <div class="fw-item"><strong class="fw-badge">SEO</strong><span class="fw-text">E‑E‑A‑T, intent mapping, topic clusters, entity SEO, AEO, GEO</span></div>
-            <div class="fw-item"><strong class="fw-badge">Funnels</strong><span class="fw-text">TOFU‑MOFU‑BOFU, Hero‑Hub-Help, pillars, territories</span></div>
-            <div class="fw-item"><strong class="fw-badge">Business</strong><span class="fw-text">STP, 4Ps/7Ps, PESTLE, Porter, Blue Ocean, GTM, CAC and contribution margin</span></div>
-            <div class="fw-item"><strong class="fw-badge">Psychology</strong><span class="fw-text">Barnum effect, FOMO, social proof, reciprocity, insight mining</span></div>
-            <div class="fw-item"><strong class="fw-badge">Culture</strong><span class="fw-text">Moment marketing, trend hijacking, memes, UGC, guerrilla, experiential</span></div>
-          </div>
-
-          <!-- Languages Footer Strip -->
-          <div class="tb-lang-strip">
-            <span class="tb-lang-label">Languages</span>
-            <div class="tb-lang-pills">
-              <span>English</span><span>Hindi</span><span>Marathi</span><span>Gujarati</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function switchView(view) {
-    if (isTransitioning || view === currentView) return;
-    isTransitioning = true;
-
-    // Update active tab buttons
-    tabsWrap.querySelectorAll('.nk-ttab').forEach(btn => {
-      const isSelected = btn.dataset.view === view;
-      btn.classList.toggle('is-on', isSelected);
-      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-      if (isSelected && window.gsap) {
-        window.gsap.fromTo(btn, { scale: 0.94 }, { scale: 1, duration: 0.28, ease: "back.out(2)" });
-      }
-    });
-
-    if (window.gsap && contentEl.children.length > 0) {
-      window.gsap.to(contentEl.children, {
-        opacity: 0,
-        y: -10,
-        scale: 0.98,
-        duration: 0.18,
-        ease: "power2.in",
-        onComplete: () => {
-          currentView = view;
-          contentEl.innerHTML = renderToolsView(view);
-
-          window.gsap.fromTo(contentEl.children,
-            { opacity: 0, y: 18, scale: 0.98 },
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: 0.38,
-              ease: "back.out(1.2)",
-              onComplete: () => {
-                isTransitioning = false;
-                if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-                if (lenis) lenis.resize();
-              }
-            }
-          );
-        }
-      });
-    } else {
-      currentView = view;
-      contentEl.innerHTML = renderToolsView(view);
-      isTransitioning = false;
-      if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-      if (lenis) lenis.resize();
-    }
-  }
-
-  tabsWrap.addEventListener('click', (e) => {
-    const btn = e.target.closest('.nk-ttab');
-    if (!btn) return;
-    const view = btn.dataset.view;
-    if (view) switchView(view);
-  });
-}
-
-/* --------------------------------------------------------------------------
-   8. JOURNEY TABS (Corporate, Clients, Education, Milestones)
+   8. JOURNEY TABS & EXPANDABLE 1-ROW VIEW (Corporate, Clients, Education, Milestones)
    -------------------------------------------------------------------------- */
 function initJourneyTabs() {
   const tabsWrap = document.querySelector('.nk-journey .nk-tabs');
   const timelineEl = document.querySelector('.nk-timeline');
+  const expandWrap = document.querySelector('.nk-journey-expand-wrap');
+  const journeySection = document.querySelector('#journey');
   if (!tabsWrap || !timelineEl) return;
 
+  const JOURNEY_ROW_LIMIT = 2; // 2 items = exactly 1 row on desktop (2-column grid)
+  let currentChapter = 'corporate';
+  let isJourneyExpanded = false;
+
   function renderChapter(chapter) {
+    currentChapter = chapter;
+    let totalCount = 0;
+    let hasMore = false;
+    let html = '';
+
     if (chapter === 'clients') {
-      timelineEl.innerHTML = clientGroups.map(cg => `
+      totalCount = clientGroups.length;
+      hasMore = totalCount > JOURNEY_ROW_LIMIT;
+      const displayedGroups = (!isJourneyExpanded && hasMore)
+        ? clientGroups.slice(0, JOURNEY_ROW_LIMIT)
+        : clientGroups;
+
+      html = displayedGroups.map(cg => `
         <li>
-          <span class="nk-year">Clients</span>
-          <div>
-            <p class="nk-tl-role">${escapeHtml(cg.k)}</p>
-            <ul class="tl-pts">
-              ${cg.items.map(item => `<li><strong>${escapeHtml(item)}</strong></li>`).join('')}
-            </ul>
+          <div class="nk-tl-top">
+            <span class="nk-year">Client Roster</span>
+            <p class="nk-tl-role" style="font-size: 16px;">${escapeHtml(cg.k)}</p>
+          </div>
+          <div class="nk-client-tags">
+            ${cg.items.map(item => `<span class="nk-client-tag">${escapeHtml(item)}</span>`).join('')}
           </div>
         </li>
       `).join('');
     } else {
       const items = journey[chapter] || journey.corporate;
-      timelineEl.innerHTML = items.map(item => {
+      totalCount = items.length;
+      hasMore = totalCount > JOURNEY_ROW_LIMIT;
+      const displayedItems = (!isJourneyExpanded && hasMore)
+        ? items.slice(0, JOURNEY_ROW_LIMIT)
+        : items;
+
+      html = displayedItems.map(item => {
         // Convert markdown bold **word** to <strong>word</strong>
         const formattedDesc = escapeHtml(item.d).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         const points = formattedDesc.split('\n').filter(Boolean);
         return `
           <li>
-            <span class="nk-year">${escapeHtml(item.y)}</span>
+            <div class="nk-tl-top">
+              <span class="nk-year">${escapeHtml(item.y)}</span>
+            </div>
             <div>
               <p class="nk-tl-role">${escapeHtml(item.r)}</p>
               <p class="nk-tl-org">${escapeHtml(item.o)}</p>
@@ -1197,13 +1143,85 @@ function initJourneyTabs() {
       }).join('');
     }
 
-    if (window.gsap) {
-      window.gsap.fromTo(timelineEl.children,
-        { opacity: 0, x: -16 },
-        { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" }
-      );
+    timelineEl.innerHTML = html;
+    updateExpandButton(hasMore, totalCount, chapter);
+
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+    if (window.lenis) window.lenis.resize();
+  }
+
+  function updateExpandButton(hasMore, totalCount, chapter) {
+    if (!expandWrap) return;
+    if (!hasMore) {
+      expandWrap.innerHTML = '';
+      return;
+    }
+
+    const chapterTitles = {
+      corporate: 'Corporate Chapters',
+      clients: 'Client Categories',
+      education: 'Education & Courses',
+      milestones: 'Milestones & Honors'
+    };
+    const label = chapterTitles[chapter] || 'Items';
+
+    if (!isJourneyExpanded) {
+      expandWrap.innerHTML = `
+        <button type="button" class="nk-work-expand-btn" id="journeyExpandBtn" aria-expanded="false">
+          <span class="nk-work-expand-text">Explore All ${totalCount} ${label}</span>
+          <span class="nk-work-expand-icon" aria-hidden="true">↓</span>
+        </button>
+        <span class="nk-work-expand-badge">Showing 2 of ${totalCount} (1 row)</span>
+      `;
+    } else {
+      expandWrap.innerHTML = `
+        <button type="button" class="nk-work-expand-btn is-collapsed-btn" id="journeyExpandBtn" aria-expanded="true">
+          <span class="nk-work-expand-text">Show Less</span>
+          <span class="nk-work-expand-icon" aria-hidden="true">↑</span>
+        </button>
+        <span class="nk-work-expand-badge">Showing all ${totalCount} ${label.toLowerCase()}</span>
+      `;
+    }
+
+    const btn = expandWrap.querySelector('#journeyExpandBtn');
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleExpand();
+      });
     }
   }
+
+  function toggleExpand() {
+    isJourneyExpanded = !isJourneyExpanded;
+    renderChapter(currentChapter);
+
+    if (window.gsap) {
+      if (isJourneyExpanded) {
+        const newCards = Array.from(timelineEl.children).slice(JOURNEY_ROW_LIMIT);
+        window.gsap.fromTo(newCards,
+          { opacity: 0, y: 18, scale: 0.98 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.04, ease: "back.out(1.2)" }
+        );
+      } else {
+        window.gsap.fromTo(timelineEl.children,
+          { opacity: 0.7, y: -6 },
+          { opacity: 1, y: 0, duration: 0.25, stagger: 0.03, ease: "power2.out" }
+        );
+        if (journeySection) {
+          const topY = journeySection.getBoundingClientRect().top + window.scrollY - 80;
+          if (window.lenis) {
+            window.lenis.scrollTo(topY, { duration: 0.5 });
+          } else {
+            window.scrollTo({ top: topY, behavior: 'smooth' });
+          }
+        }
+      }
+    }
+  }
+
+  // Initial render (defaults to collapsed 1 row)
+  renderChapter('corporate');
 
   tabsWrap.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
@@ -1217,7 +1235,15 @@ function initJourneyTabs() {
     btn.classList.add('is-on');
     btn.setAttribute('aria-selected', 'true');
 
+    isJourneyExpanded = false; // Reset to 1 row on tab change
     renderChapter(text);
+
+    if (window.gsap) {
+      window.gsap.fromTo(timelineEl.children,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.35, stagger: 0.04, ease: "power2.out" }
+      );
+    }
   });
 }
 
