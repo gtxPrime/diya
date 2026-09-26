@@ -228,12 +228,8 @@ export const ASSET_MAP = {
     }
   ];
   export const numbers = [
-    { n: "18", s: "%", l: "CTR growth at Affinco" },
-    { n: "22", s: "%", l: "Sign-up growth at Affinco" },
-    { n: "553.8", s: "%", l: "Instagram engagement growth, Paradox" },
-    { n: "399.7", s: "%", l: "Instagram reach growth, Paradox" },
     { n: "300", s: "K+", l: "Monthly readers, Consumer Health Digest" },
-    { n: "12.5", s: "%", l: "Engagement rate, about 2x benchmark" },
+    { n: "553.8", s: "%", l: "Instagram engagement growth, Paradox" },
     { n: "~38", s: "%", l: "Conversion lift, Melooha ad scripts" },
     { n: "~42", s: "%", l: "Sales lift, Pristilo campaign" }
   ];

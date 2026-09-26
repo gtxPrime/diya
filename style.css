@@ -9149,19 +9149,62 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
   padding-bottom: 44px !important;
 }
 .nk-numgrid {
-  gap: 12px !important;
-  margin: 18px auto 22px !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 16px !important;
+  max-width: 900px !important;
+  margin: 24px auto 28px !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+@media (min-width: 768px) {
+  .nk-numgrid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
 }
 .nk-numgrid > div {
-  padding: 14px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 16px 14px !important;
+  border-bottom: none !important;
 }
 .nk-numgrid strong {
-  font-size: 36px !important;
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: center !important;
+  font-size: clamp(38px, 4vw, 54px) !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+.nk-numgrid span {
+  display: block !important;
+  text-align: center !important;
+  margin-top: 8px !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  max-width: 180px !important;
 }
 .nk-numstrip {
-  margin: 16px 0 24px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
   gap: 10px !important;
-  padding: 10px 14px !important;
+  max-width: 880px !important;
+  margin: 20px auto 32px !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+.rs-all {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: fit-content !important;
+  margin: 36px auto 0 !important;
+  text-align: center !important;
 }
 
 /* 7. Compact Services & Journey Sections */
