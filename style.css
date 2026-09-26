@@ -5606,6 +5606,12 @@ body {
   width: 230px;
   transform: rotate(-7deg);
   filter: drop-shadow(0 0 0 #fff) drop-shadow(5px 5px 0 var(--ink));
+  cursor: pointer;
+  will-change: transform;
+  transition: filter 0.25s ease;
+}
+.mc-clap:hover {
+  filter: drop-shadow(0 0 0 #fff) drop-shadow(8px 8px 0 var(--purple));
 }
 .mc-top {
   height: 26px;
@@ -7392,7 +7398,9 @@ small {
   right: -6px !important;
   bottom: -158px !important;
   width: 190px !important;
-  transform: rotate(5deg) !important;
+  transform: rotate(5deg);
+  cursor: pointer;
+  will-change: transform;
 }
 @media (min-width: 768px) {
   .nk-about-photo {

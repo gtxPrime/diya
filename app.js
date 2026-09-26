@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initFavsCarousel();
   initLetterDetails();
   initScrollReveals();
+  initClapperAnimation();
   initMicroHoverEffects();
 });
 
@@ -1013,21 +1014,11 @@ function initScrollReveals() {
 
   // Floating tilt on about & services photos
   const aboutPhoto = document.querySelector('.nk-about-photo img');
-  const clapBoard = document.querySelector('.mc-clap');
   if (aboutPhoto) {
     window.gsap.to(aboutPhoto, {
       rotate: 4.5,
       y: -6,
       duration: 3.5,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
-  }
-  if (clapBoard) {
-    window.gsap.to(clapBoard, {
-      rotate: -9,
-      duration: 2.8,
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut"
@@ -1063,6 +1054,114 @@ function initMicroHoverEffects() {
         window.gsap.to(btn, { scale: 1, duration: 0.2, ease: "power2.out" });
       }
     });
+  });
+}
+
+/* --------------------------------------------------------------------------
+   14. CLAPPERBOARD SCROLL ENTRANCE & INTERACTIVE MOUSE HOVER TILT
+   -------------------------------------------------------------------------- */
+function initClapperAnimation() {
+  const clapBoard = document.querySelector('.mc-clap');
+  const clapTop = document.querySelector('.mc-top');
+  if (!clapBoard || !window.gsap) return;
+
+  const baseRotate = 5; // Resting natural rotation in degrees
+
+  // 1. Entrance animation on scroll up into view
+  const triggerElement = clapBoard.closest('.nk-about-photo') || clapBoard;
+
+  if (window.ScrollTrigger) {
+    window.gsap.fromTo(
+      clapBoard,
+      {
+        y: 85,
+        opacity: 0,
+        scale: 0.84,
+        rotate: -14
+      },
+      {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        rotate: baseRotate,
+        duration: 1.05,
+        ease: "back.out(1.7)",
+        scrollTrigger: {
+          trigger: triggerElement,
+          start: "top 85%",
+          toggleActions: "play none none none"
+        }
+      }
+    );
+
+    if (clapTop) {
+      window.gsap.fromTo(
+        clapTop,
+        { rotate: -24 },
+        {
+          rotate: -6,
+          duration: 0.5,
+          delay: 0.35,
+          ease: "bounce.out",
+          scrollTrigger: {
+            trigger: triggerElement,
+            start: "top 85%",
+            toggleActions: "play none none none"
+          }
+        }
+      );
+    }
+  }
+
+  // 2. Interactive mousemove tilt & follow
+  const onMouseMove = (e) => {
+    const rect = clapBoard.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Normalized offset from center: -1 to 1
+    const normX = Math.max(-1.5, Math.min(1.5, (e.clientX - centerX) / (rect.width / 2)));
+    const normY = Math.max(-1.5, Math.min(1.5, (e.clientY - centerY) / (rect.height / 2)));
+
+    // Subtle magnetic drift (up to ~18px) and responsive angular tilt
+    const targetX = normX * 18;
+    const targetY = normY * 16;
+    const targetRotate = baseRotate + normX * 8;
+
+    window.gsap.to(clapBoard, {
+      x: targetX,
+      y: targetY,
+      rotate: targetRotate,
+      scale: 1.05,
+      duration: 0.28,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
+  };
+
+  const onMouseLeave = () => {
+    window.gsap.to(clapBoard, {
+      x: 0,
+      y: 0,
+      rotate: baseRotate,
+      scale: 1,
+      duration: 0.75,
+      ease: "elastic.out(1.1, 0.4)",
+      overwrite: "auto"
+    });
+  };
+
+  clapBoard.addEventListener('mouseenter', onMouseMove);
+  clapBoard.addEventListener('mousemove', onMouseMove);
+  clapBoard.addEventListener('mouseleave', onMouseLeave);
+
+  // 3. Tactile click "snap clap" interaction
+  clapBoard.addEventListener('click', () => {
+    if (clapTop) {
+      window.gsap.timeline()
+        .to(clapTop, { rotate: -26, duration: 0.1, ease: "power2.out" })
+        .to(clapTop, { rotate: -6, duration: 0.25, ease: "bounce.out" });
+    }
   });
 }
 
