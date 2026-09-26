@@ -10600,20 +10600,21 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
 .nk-feat-grid {
   display: grid !important;
   grid-template-columns: 1fr !important;
-  gap: 24px !important;
-  max-width: 1120px !important;
-  margin: 24px auto 0 !important;
+  gap: 28px !important;
+  max-width: 1040px !important;
+  margin: 32px auto 0 !important;
   align-items: stretch !important;
 }
 
 @media (min-width: 860px) {
   .nk-feat-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 28px !important;
+    gap: 32px !important;
   }
 }
 
-.nk-feat-grid .px-clip {
+/* Base styling shared across both Featured Cards */
+.nk-feat-grid .feat-card {
   max-width: 100% !important;
   width: 100% !important;
   margin: 0 !important;
@@ -10621,91 +10622,249 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
   flex-direction: column !important;
   justify-content: space-between !important;
   box-sizing: border-box !important;
-  border-radius: 20px !important;
-  border: 2.5px solid var(--ink, #141414) !important;
-  box-shadow: 6px 6px 0 var(--yellow, #ffd400), 6px 6px 0 2.5px var(--ink, #141414) !important;
-  background: #ffffff !important;
-  transform: rotate(-0.5deg);
+  border-radius: 22px !important;
+  border: 3px solid var(--ink, #141414) !important;
+  box-shadow: 7px 7px 0 var(--ink, #141414) !important;
+  overflow: hidden !important;
+  text-decoration: none !important;
+  color: var(--ink, #141414) !important;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important;
 }
 
-.nk-feat-grid .px-clip:hover {
-  transform: translateY(-5px) rotate(0deg) scale(1.01) !important;
-  box-shadow: 10px 12px 0 var(--yellow, #ffd400), 10px 12px 0 2.5px var(--ink, #141414) !important;
+.nk-feat-grid .feat-card:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow: 10px 12px 0 var(--yellow, #ffd400), 10px 12px 0 3px var(--ink, #141414) !important;
 }
 
-.nk-feat-grid .px-clip .px-img-wrap {
+/* Left Card: Article Card */
+.nk-feat-grid .feat-card-art {
+  background: #ffffff !important;
+  transform: rotate(-0.6deg);
+}
+
+.nk-feat-grid .feat-art-frame {
   width: 100% !important;
-  border-radius: 12px !important;
+  border-bottom: 3px solid var(--ink, #141414) !important;
+  background: #ece5d8 !important;
   overflow: hidden !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
 
-.nk-feat-grid .px-clip img {
+.nk-feat-grid .feat-art-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 14px !important;
+  background: #e2dbce !important;
+  border-bottom: 2px solid rgba(20, 20, 20, 0.15) !important;
+}
+
+.nk-feat-grid .feat-art-dots {
+  display: inline-flex !important;
+  gap: 5px !important;
+  align-items: center !important;
+}
+
+.nk-feat-grid .feat-art-dots i {
+  width: 9px !important;
+  height: 9px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  border: 1px solid rgba(0,0,0,0.15) !important;
+}
+
+.nk-feat-grid .feat-art-dots .dot-r { background: #ff5f56 !important; }
+.nk-feat-grid .feat-art-dots .dot-y { background: #ffbd2e !important; }
+.nk-feat-grid .feat-art-dots .dot-g { background: #27c93f !important; }
+
+.nk-feat-grid .feat-art-domain {
+  font-family: var(--sans, "Inter"), sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  color: rgba(20, 20, 20, 0.6) !important;
+  text-transform: uppercase !important;
+}
+
+.nk-feat-grid .feat-art-frame .px-img-wrap {
   width: 100% !important;
-  height: auto !important;
+  height: 160px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  display: flex !important;
+  align-items: flex-start !important;
+}
+
+.nk-feat-grid .feat-art-frame img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: 50% 12% !important;
   display: block !important;
 }
 
-.nk-feat-grid .px-cap {
+/* Right Card: Podcast Guest Card */
+.nk-feat-grid .pd-guest-col {
   display: flex !important;
   flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 6px !important;
-  padding: 14px 4px 4px !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
-.nk-feat-grid .px-cap strong {
+.nk-feat-grid .feat-card-guest {
+  background: var(--yellow, #ffd400) !important;
+  transform: rotate(0.6deg);
+  height: 100% !important;
+}
+
+.nk-feat-grid .pd-hero.pd-hero-guest {
+  height: 160px !important;
+  position: relative !important;
+  overflow: visible !important;
+  background:
+    radial-gradient(
+      circle at 28% 24%,
+      rgba(255, 255, 255, .35) 0 4px,
+      transparent 5px) 0 0 / 28px 28px,
+    linear-gradient(
+      135deg,
+      #fff7d1,
+      #fbd213 65%,
+      #f1a90c) !important;
+  border-bottom: 3px solid var(--ink, #141414) !important;
+  margin-bottom: 30px !important;
+  width: 100% !important;
+  flex-shrink: 0 !important;
+}
+
+.nk-feat-grid .pd-hero.pd-hero-guest .pd-circ {
+  position: absolute !important;
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 50% !important;
+  border: 3px solid #ffffff !important;
+  box-shadow: 0 0 0 2px var(--ink, #141414), 3px 3px 0 2px var(--ink, #141414) !important;
+  bottom: -24px !important;
+  z-index: 3 !important;
+  object-fit: cover !important;
+  background: #ffffff !important;
+}
+
+.nk-feat-grid .pd-hero.pd-hero-guest .pd-circ.is-l {
+  left: 20px !important;
+}
+
+.nk-feat-grid .pd-hero.pd-hero-guest .pd-circ.is-r {
+  right: 20px !important;
+}
+
+.nk-feat-grid .pd-hero.pd-hero-guest .pd-vs {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: -13px !important;
+  transform: translateX(-50%) !important;
   font-family: var(--cond, "Antonio"), sans-serif !important;
-  font-size: 22px !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  background: var(--ink, #141414) !important;
+  color: #ffffff !important;
+  padding: 1px 11px !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 6px !important;
+  box-shadow: 2px 2px 0 var(--ink, #141414) !important;
+  z-index: 4 !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+/* Card Body (Both Cards) */
+.nk-feat-grid .feat-card-body {
+  padding: 18px 22px 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.nk-feat-grid .feat-card-body h4 {
+  font-family: var(--cond, "Antonio"), sans-serif !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
   text-transform: uppercase !important;
   line-height: 1.1 !important;
+  margin: 4px 0 2px !important;
   color: var(--ink, #141414) !important;
 }
 
-.nk-feat-grid .px-cap em {
+.nk-feat-grid .feat-card-body small {
+  font-family: var(--sans, "Inter"), sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: rgba(20, 20, 20, 0.72) !important;
+  display: block !important;
+}
+
+.nk-feat-grid .feat-card-body .feat-quote {
   font-family: "Caveat", cursive !important;
   font-style: normal !important;
   font-size: 19px !important;
   color: var(--purple, #7c3aed) !important;
-  line-height: 1.3 !important;
+  line-height: 1.35 !important;
+  margin: 8px 0 !important;
 }
 
-.nk-feat-grid .px-cap b {
-  display: inline-block !important;
-  margin-top: 4px !important;
+.nk-feat-grid .feat-card-body .pd-pts {
+  margin: 6px 0 12px !important;
+  padding-left: 0 !important;
+  list-style: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
+
+.nk-feat-grid .feat-card-body .pd-pts li {
+  font-family: var(--sans, "Inter"), sans-serif !important;
+  font-size: 12.5px !important;
+  line-height: 1.35 !important;
+  color: rgba(20, 20, 20, 0.85) !important;
+  position: relative !important;
+  padding-left: 14px !important;
+}
+
+.nk-feat-grid .feat-card-body .pd-pts li::before {
+  content: "✦" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  font-size: 10px !important;
+  color: var(--ink, #141414) !important;
+}
+
+.nk-feat-grid .feat-card-body .pd-play {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: flex-start !important;
+  margin-top: auto !important;
+  padding: 8px 18px !important;
+  background: var(--ink, #141414) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
   font-family: var(--cond, "Antonio"), sans-serif !important;
   font-size: 15px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
-  color: var(--ink, #141414) !important;
-  border-bottom: 2.5px solid var(--purple, #7c3aed) !important;
-  padding-bottom: 1px !important;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2) !important;
+  transition: transform 0.18s ease, background 0.18s ease !important;
 }
 
-.nk-feat-grid .pd-guest-col {
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-}
-
-.nk-feat-grid .pd-cover {
-  max-width: 100% !important;
-  width: 100% !important;
-  margin: 0 !important;
-  height: 100% !important;
-  box-sizing: border-box !important;
-  border-radius: 20px !important;
-  border: 2.5px solid var(--ink, #141414) !important;
-  box-shadow: 6px 6px 0 var(--yellow, #ffd400), 6px 6px 0 2.5px var(--ink, #141414) !important;
-  transform: rotate(0.5deg);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important;
-}
-
-.nk-feat-grid .pd-cover:hover {
-  transform: translateY(-5px) rotate(0deg) scale(1.01) !important;
-  box-shadow: 10px 12px 0 var(--yellow, #ffd400), 10px 12px 0 2.5px var(--ink, #141414) !important;
+.nk-feat-grid .feat-card:hover .pd-play {
+  background: var(--purple, #7c3aed) !important;
+  color: #ffffff !important;
+  transform: translateX(3px) !important;
 }
 
 .pd-clips-strip {
@@ -10760,14 +10919,14 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
 .pd-pin-stage {
   width: 100% !important;
   height: 100vh !important;
-  min-height: 640px !important;
+  min-height: 600px !important;
   max-height: 100vh !important;
   box-sizing: border-box !important;
-  padding: clamp(75px, 10vh, 95px) 20px clamp(15px, 2.5vh, 25px) !important;
+  padding: 70px 20px 24px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   position: relative !important;
   overflow: hidden !important;
   background: var(--bg, #f4efe6) !important;
@@ -10776,13 +10935,14 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
 .pd-header-wrap {
   width: 100% !important;
   text-align: center !important;
-  margin-bottom: clamp(10px, 1.8vh, 18px) !important;
+  margin-bottom: 18px !important;
   z-index: 10 !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   gap: 8px !important;
   flex-shrink: 0 !important;
+  transform-origin: center center !important;
 }
 
 .pd-header-wrap h2 {

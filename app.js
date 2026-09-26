@@ -1742,38 +1742,56 @@ function escapeHtml(str) {
    -------------------------------------------------------------------------- */
 function initPodcastStackCards() {
   const section = document.querySelector('#media.nk-pods');
+  const headerWrap = document.querySelector('.pd-header-wrap');
   const cards = document.querySelectorAll('.pd-stack-card');
   const curEpLabel = document.querySelector('.pd-cur-ep');
+  const counterLabel = document.querySelector('.pd-counter-label');
 
-  if (!section || cards.length < 3 || !window.gsap || !window.ScrollTrigger) return;
+  if (!section || !headerWrap || cards.length < 3 || !window.gsap || !window.ScrollTrigger) return;
 
   const card0 = cards[0]; // EP. 01 Jay Morzaria
   const card1 = cards[1]; // EP. 02 Naveen Yadav
   const card2 = cards[2]; // EP. 03 Sankalp Arora
 
-  // Ensure card z-indexes and initial state:
-  // Card 0 starts in center so user sees title + Card 1 as they arrive
+  // Register ScrollTrigger plugin
+  window.gsap.registerPlugin(window.ScrollTrigger);
+
+  // Initial State:
+  // 1. Heading starts vertically centered in the screen (shifted down)
+  window.gsap.set(headerWrap, {
+    y: "22vh",
+    scale: 1.1,
+    opacity: 1,
+    willChange: "transform, opacity"
+  });
+
+  // 2. All cards start below the viewport, out of sight
   window.gsap.set(card0, {
     zIndex: 10,
-    y: 0,
-    opacity: 1,
-    scale: 1,
+    y: "115vh",
+    opacity: 0,
+    scale: 0.94,
     rotate: -1,
-    boxShadow: "0 10px 24px rgba(0,0,0,0.18), 6px 6px 0 var(--ink, #141414)"
+    boxShadow: "0 14px 28px rgba(0,0,0,0.18), 6px 6px 0 var(--ink, #141414)",
+    willChange: "transform, opacity"
   });
   window.gsap.set(card1, {
     zIndex: 20,
-    y: "115vh",
+    y: "135vh",
     opacity: 0,
-    scale: 0.92,
-    rotate: 2.5
+    scale: 0.94,
+    rotate: 2.5,
+    boxShadow: "0 18px 36px rgba(0,0,0,0.22), 7px 7px 0 var(--ink, #141414)",
+    willChange: "transform, opacity"
   });
   window.gsap.set(card2, {
     zIndex: 30,
-    y: "125vh",
+    y: "155vh",
     opacity: 0,
-    scale: 0.92,
-    rotate: -1
+    scale: 0.94,
+    rotate: -1,
+    boxShadow: "0 22px 42px rgba(0,0,0,0.28), 8px 8px 0 var(--ink, #141414)",
+    willChange: "transform, opacity"
   });
 
   // Pinned GSAP ScrollTrigger timeline with smooth scrub
@@ -1781,83 +1799,100 @@ function initPodcastStackCards() {
     scrollTrigger: {
       trigger: section,
       start: "top top",
-      end: "+=2200",
+      end: "+=2800",
       pin: true,
       pinSpacing: true,
       scrub: 1,
       anticipatePin: 1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
-        if (!curEpLabel) return;
         const p = self.progress;
-        if (p < 0.42) {
-          curEpLabel.textContent = "01";
-        } else if (p < 0.78) {
-          curEpLabel.textContent = "02";
+        if (p < 0.28) {
+          if (curEpLabel) curEpLabel.textContent = "01";
+          if (counterLabel) counterLabel.innerHTML = 'Episode <span class="pd-cur-ep">01</span> of 03 · Jay Morzaria';
+        } else if (p < 0.65) {
+          if (curEpLabel) curEpLabel.textContent = "02";
+          if (counterLabel) counterLabel.innerHTML = 'Episode <span class="pd-cur-ep">02</span> of 03 · Naveen Yadav';
         } else {
-          curEpLabel.textContent = "03";
+          if (curEpLabel) curEpLabel.textContent = "03";
+          if (counterLabel) counterLabel.innerHTML = 'Episode <span class="pd-cur-ep">03</span> of 03 · Sankalp Arora';
         }
       }
     }
   });
 
-  // Hold card 0 briefly
-  tl.to({}, { duration: 0.3 })
+  // Step 1: Heading shifts up from center to its pinned header position,
+  // while Card 0 (EP. 01) scrolls/swipes up from the bottom into the center!
+  tl.to(headerWrap, {
+    y: 0,
+    scale: 1,
+    duration: 1.0,
+    ease: "power2.out"
+  }, "card0In")
+  .to(card0, {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    rotate: -1,
+    duration: 1.0,
+    ease: "power2.out"
+  }, "card0In+=0.15")
 
-  // Step 1: Bring Card 1 (EP. 02) to STACK directly on top of Card 0
+  // Brief pause to read Card 0
+  .to({}, { duration: 0.5 })
+
+  // Step 2: More scroll -> Card 1 (EP. 02) swipes up and STACKS over Card 0 in center
   .to(card1, {
     y: 0,
     opacity: 1,
     scale: 1,
-    rotate: 1.5,
-    boxShadow: "0 16px 32px rgba(0,0,0,0.24), 7px 7px 0 var(--ink, #141414)",
-    duration: 1.2,
+    rotate: 2,
+    duration: 1.0,
     ease: "power2.out"
-  })
+  }, "card1In")
   .to(card0, {
     scale: 0.95,
-    y: -18,
-    rotate: -2.5,
+    y: -16,
+    rotate: -3,
     filter: "brightness(0.92)",
     boxShadow: "4px 4px 0 var(--ink, #141414)",
-    duration: 1.2,
+    duration: 1.0,
     ease: "power2.out"
-  }, "<")
+  }, "card1In")
 
-  // Reading pause for Card 1
-  .to({}, { duration: 0.4 })
+  // Brief pause to read Card 1
+  .to({}, { duration: 0.5 })
 
-  // Step 2: Bring Card 2 (EP. 03) to STACK directly on top of Card 1
+  // Step 3: More scroll -> Card 2 (EP. 03) swipes up and STACKS over Card 1 in center
   .to(card2, {
     y: 0,
     opacity: 1,
     scale: 1,
     rotate: -0.5,
-    boxShadow: "0 22px 42px rgba(0,0,0,0.3), 8px 8px 0 var(--ink, #141414)",
-    duration: 1.2,
+    duration: 1.0,
     ease: "power2.out"
-  })
+  }, "card2In")
   .to(card1, {
     scale: 0.95,
-    y: -18,
+    y: -16,
     rotate: 1.5,
     filter: "brightness(0.92)",
     boxShadow: "5px 5px 0 var(--ink, #141414)",
-    duration: 1.2,
+    duration: 1.0,
     ease: "power2.out"
-  }, "<")
+  }, "card2In")
   .to(card0, {
     scale: 0.90,
-    y: -34,
-    rotate: -4,
+    y: -30,
+    rotate: -5,
     filter: "brightness(0.85)",
     boxShadow: "3px 3px 0 var(--ink, #141414)",
-    duration: 1.2,
+    duration: 1.0,
     ease: "power2.out"
-  }, "<")
+  }, "card2In")
 
-  // Hold full stack for viewing before unpinning
-  .to({}, { duration: 0.5 });
+  // Final hold of full stack before unpinning
+  .to({}, { duration: 0.6 });
 }
 
 /* --------------------------------------------------------------------------
