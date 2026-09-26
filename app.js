@@ -5,46 +5,11 @@
 
 import { drawers, services, journey, clientGroups, faqs, linkFor, PORTFOLIO_ROOT, ASSET_MAP } from './portfolio-data.js';
 
-// Wait for DOM & libraries to load
-function initApp() {
-  initLenisAndGSAP();
-  initNavbar();
-  initLiveClock();
-  initLoaderAndHeroAnimation();
-  initHeroAnimations();
-  initQuickStatsCountup();
-  initServicesAccordion();
-  initWorkTabs();
-  initToolsSection();
-  initJourneyTabs();
-  initFaqAccordion();
-  initTestimonialsSlider();
-  initPodcastStackCards();
-  initFavsHorizontalScroll();
-  initLetterDetails();
-  initScrollReveals();
-  initClapperAnimation();
-  initProcessCardsTilt();
-  initMicroHoverEffects();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
-}
-
-window.addEventListener("load", () => {
-  if (typeof window.ScrollTrigger !== "undefined") {
-    window.ScrollTrigger.refresh();
-  }
-});
+let lenis = null;
 
 /* --------------------------------------------------------------------------
    1. LENIS SMOOTH SCROLL & GSAP SCROLLTRIGGER SYNC
    -------------------------------------------------------------------------- */
-let lenis = null;
-
 function initLenisAndGSAP() {
   // Initialize Lenis if available
   if (typeof window.Lenis !== "undefined") {
@@ -1894,4 +1859,42 @@ function initPodcastStackCards() {
   // Hold full stack for viewing before unpinning
   .to({}, { duration: 0.5 });
 }
+
+/* --------------------------------------------------------------------------
+   APPLICATION BOOTSTRAP
+   -------------------------------------------------------------------------- */
+function initApp() {
+  initLenisAndGSAP();
+  initNavbar();
+  initLiveClock();
+  initLoaderAndHeroAnimation();
+  initHeroAnimations();
+  initQuickStatsCountup();
+  initServicesAccordion();
+  initWorkTabs();
+  initToolsSection();
+  initJourneyTabs();
+  initFaqAccordion();
+  initTestimonialsSlider();
+  initPodcastStackCards();
+  initFavsHorizontalScroll();
+  initLetterDetails();
+  initScrollReveals();
+  initClapperAnimation();
+  initProcessCardsTilt();
+  initMicroHoverEffects();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
+
+window.addEventListener("load", () => {
+  if (typeof window.ScrollTrigger !== "undefined") {
+    window.ScrollTrigger.refresh();
+  }
+});
+
 
