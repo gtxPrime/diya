@@ -1,0 +1,10 @@
+# robots.txt for https://diyanathwani.com/
+User-agent: *
+Allow: /
+
+# Disallow hidden files
+Disallow: /.*
+Disallow: /*.json$
+
+# Sitemaps
+Sitemap: https://diyanathwani.com/sitemap.xml

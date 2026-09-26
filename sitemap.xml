@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://diyanathwani.com/</loc>
+    <lastmod>2026-09-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://diyanathwani.com/assets/images/diya/diya-nathwani-content-strategist-speaking.jpg</image:loc>
+      <image:title>Diya Nathwani - Content Strategist &amp; Brand Writer</image:title>
+      <image:caption>Diya Nathwani speaking on stage about content strategy and viral storytelling</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://diyanathwani.com/assets/images/diya/diya-nathwani-professional-portrait.jpg</image:loc>
+      <image:title>Diya Nathwani Portrait</image:title>
+      <image:caption>Diya Nathwani professional portrait in black blazer</image:caption>
+    </image:image>
+  </url>
+</urlset>
