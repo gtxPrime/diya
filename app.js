@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initJourneyTabs();
   initFaqAccordion();
   initTestimonialsSlider();
+  initFavsCarousel();
   initLetterDetails();
   initScrollReveals();
   initMicroHoverEffects();
@@ -175,22 +176,47 @@ function initLiveClock() {
 }
 
 /* --------------------------------------------------------------------------
-   4. HERO MICRO-ANIMATIONS (3D TAG FLIP, LETTER HOVER, PARALLAX)
+   4. HERO MICRO-ANIMATIONS (GSAP TEXT STAGGER, 3D TAG FLIP, PARALLAX)
    -------------------------------------------------------------------------- */
 function initHeroAnimations() {
   const tagEl = document.querySelector('.hn-tagrow .hn-w');
-  if (!tagEl) return;
 
-  const tags = [
-    "DATA x DRAMA",
-    "ICONIC HOOKS",
-    "CERTIFIED YAPPER",
-    "ALGORITHM OBSESSED"
-  ];
-  let currentIdx = 0;
-
-  // Flip through tags using GSAP
+  // GSAP 1. Hero Text Stagger Entrance
   if (window.gsap) {
+    window.gsap.from(".hn-big .hn-l", {
+      y: 70,
+      opacity: 0,
+      stagger: 0.08,
+      duration: 0.9,
+      ease: "power3.out"
+    });
+    window.gsap.from(".nk-hero-stage .nk-hero-word", {
+      y: 40,
+      opacity: 0,
+      stagger: 0.15,
+      duration: 0.8,
+      ease: "power2.out",
+      delay: 0.25
+    });
+    window.gsap.from(".nk-hero-sub", {
+      y: 25,
+      opacity: 0,
+      duration: 0.85,
+      ease: "power2.out",
+      delay: 0.4
+    });
+  }
+
+  // 3D Tag flip
+  if (tagEl && window.gsap) {
+    const tags = [
+      "DATA x DRAMA",
+      "ICONIC HOOKS",
+      "CERTIFIED YAPPER",
+      "ALGORITHM OBSESSED"
+    ];
+    let currentIdx = 0;
+
     setInterval(() => {
       currentIdx = (currentIdx + 1) % tags.length;
       const nextText = tags[currentIdx];
@@ -239,6 +265,21 @@ function initHeroAnimations() {
       yoyo: true,
       ease: "sine.inOut"
     });
+
+    // GSAP 7. Image Parallax Drift on Scroll
+    if (window.ScrollTrigger) {
+      window.gsap.to(heroPhoto, {
+        y: 40,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".nk-hero",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1
+        }
+      });
+    }
+
     orbs.forEach((orb, i) => {
       window.gsap.to(orb, {
         y: i === 0 ? 6 : -6,
@@ -656,7 +697,7 @@ function initFaqAccordion() {
 }
 
 /* --------------------------------------------------------------------------
-   10. TESTIMONIALS SLIDER & ARROWS
+   10. TESTIMONIALS SLIDER & ARROWS (Autoplay + Touch / Mouse Drag)
    -------------------------------------------------------------------------- */
 function initTestimonialsSlider() {
   const marquee = document.querySelector('.tm-marquee');
@@ -677,6 +718,28 @@ function initTestimonialsSlider() {
     });
   }
 
+  // Auto-play slider every 4.5 seconds (pausing on hover / interaction)
+  let autoTimer = null;
+  function startAutoPlay() {
+    stopAutoPlay();
+    autoTimer = setInterval(() => {
+      if (marquee.scrollLeft + marquee.clientWidth >= marquee.scrollWidth - 10) {
+        marquee.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        marquee.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }, 4500);
+  }
+  function stopAutoPlay() {
+    if (autoTimer) clearInterval(autoTimer);
+  }
+
+  startAutoPlay();
+  marquee.addEventListener('mouseenter', stopAutoPlay);
+  marquee.addEventListener('mouseleave', startAutoPlay);
+  marquee.addEventListener('touchstart', stopAutoPlay, { passive: true });
+  marquee.addEventListener('touchend', startAutoPlay);
+
   // Mouse drag support
   let isDown = false;
   let startX;
@@ -687,15 +750,58 @@ function initTestimonialsSlider() {
     marquee.classList.add('active');
     startX = e.pageX - marquee.offsetLeft;
     scrollLeft = marquee.scrollLeft;
+    stopAutoPlay();
   });
-  marquee.addEventListener('mouseleave', () => isDown = false);
-  marquee.addEventListener('mouseup', () => isDown = false);
+  marquee.addEventListener('mouseleave', () => {
+    isDown = false;
+    marquee.classList.remove('active');
+    startAutoPlay();
+  });
+  marquee.addEventListener('mouseup', () => {
+    isDown = false;
+    marquee.classList.remove('active');
+    startAutoPlay();
+  });
   marquee.addEventListener('mousemove', (e) => {
     if (!isDown) return;
     e.preventDefault();
     const x = e.pageX - marquee.offsetLeft;
     const walk = (x - startX) * 1.5;
     marquee.scrollLeft = scrollLeft - walk;
+  });
+}
+
+/* --------------------------------------------------------------------------
+   IRL FAVS HORIZONTAL CAROUSEL SWIPE & DRAG (#rooms)
+   -------------------------------------------------------------------------- */
+function initFavsCarousel() {
+  const row = document.querySelector('.st-row');
+  if (!row) return;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  row.addEventListener('mousedown', (e) => {
+    isDown = true;
+    row.classList.add('active');
+    startX = e.pageX - row.offsetLeft;
+    scrollLeft = row.scrollLeft;
+  });
+  row.addEventListener('mouseleave', () => {
+    isDown = false;
+    row.classList.remove('active');
+  });
+  row.addEventListener('mouseup', () => {
+    isDown = false;
+    row.classList.remove('active');
+  });
+  row.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - row.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    row.scrollLeft = scrollLeft - walk;
   });
 }
 
