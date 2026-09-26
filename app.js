@@ -1757,15 +1757,14 @@ function initPodcastStackCards() {
   window.gsap.registerPlugin(window.ScrollTrigger);
 
   // Initial State:
-  // 1. Heading starts vertically centered in the screen (shifted down)
+  // Heading is pinned dead-center in the middle of the screen via CSS
   window.gsap.set(headerWrap, {
-    y: "22vh",
-    scale: 1.1,
     opacity: 1,
+    scale: 1,
     willChange: "transform, opacity"
   });
 
-  // 2. All cards start below the viewport, out of sight
+  // All 3 cards start below the viewport, waiting to swipe up
   window.gsap.set(card0, {
     zIndex: 10,
     y: "115vh",
@@ -1780,7 +1779,7 @@ function initPodcastStackCards() {
     y: "135vh",
     opacity: 0,
     scale: 0.94,
-    rotate: 2.5,
+    rotate: 2.2,
     boxShadow: "0 18px 36px rgba(0,0,0,0.22), 7px 7px 0 var(--ink, #141414)",
     willChange: "transform, opacity"
   });
@@ -1789,7 +1788,7 @@ function initPodcastStackCards() {
     y: "155vh",
     opacity: 0,
     scale: 0.94,
-    rotate: -1,
+    rotate: -0.75,
     boxShadow: "0 22px 42px rgba(0,0,0,0.28), 8px 8px 0 var(--ink, #141414)",
     willChange: "transform, opacity"
   });
@@ -1799,7 +1798,7 @@ function initPodcastStackCards() {
     scrollTrigger: {
       trigger: section,
       start: "top top",
-      end: "+=2800",
+      end: "+=2600",
       pin: true,
       pinSpacing: true,
       scrub: 1,
@@ -1821,32 +1820,32 @@ function initPodcastStackCards() {
     }
   });
 
-  // Step 1: Heading shifts up from center to its pinned header position,
-  // while Card 0 (EP. 01) scrolls/swipes up from the bottom into the center!
-  tl.to(headerWrap, {
-    y: 0,
-    scale: 1,
-    duration: 1.0,
-    ease: "power2.out"
-  }, "card0In")
-  .to(card0, {
+  // Step 1: Screen stays PINNED with heading in center!
+  // Card 0 (EP. 01) swipes up from bottom into the center directly OVER the heading!
+  tl.to(card0, {
     y: 0,
     opacity: 1,
     scale: 1,
     rotate: -1,
     duration: 1.0,
     ease: "power2.out"
-  }, "card0In+=0.15")
+  }, "card0In")
+  .to(headerWrap, {
+    opacity: 0.1,
+    scale: 0.95,
+    duration: 0.7,
+    ease: "power2.out"
+  }, "card0In")
 
-  // Brief pause to read Card 0
+  // Reading pause for Card 0
   .to({}, { duration: 0.5 })
 
-  // Step 2: More scroll -> Card 1 (EP. 02) swipes up and STACKS over Card 0 in center
+  // Step 2: More scroll -> Card 1 (EP. 02) swipes up and STACKS directly over Card 0 in center
   .to(card1, {
     y: 0,
     opacity: 1,
     scale: 1,
-    rotate: 2,
+    rotate: 2.2,
     duration: 1.0,
     ease: "power2.out"
   }, "card1In")
@@ -1860,15 +1859,15 @@ function initPodcastStackCards() {
     ease: "power2.out"
   }, "card1In")
 
-  // Brief pause to read Card 1
+  // Reading pause for Card 1
   .to({}, { duration: 0.5 })
 
-  // Step 3: More scroll -> Card 2 (EP. 03) swipes up and STACKS over Card 1 in center
+  // Step 3: More scroll -> Card 2 (EP. 03) swipes up and STACKS directly over Card 1 in center
   .to(card2, {
     y: 0,
     opacity: 1,
     scale: 1,
-    rotate: -0.5,
+    rotate: -0.75,
     duration: 1.0,
     ease: "power2.out"
   }, "card2In")
@@ -1891,7 +1890,7 @@ function initPodcastStackCards() {
     ease: "power2.out"
   }, "card2In")
 
-  // Final hold of full stack before unpinning
+  // Final hold of full stack before unpinning and normal scroll to next section
   .to({}, { duration: 0.6 });
 }
 
