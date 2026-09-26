@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollReveals();
   initClapperAnimation();
   initProcessCardsTilt();
+  initPodcastStackCards();
   initMicroHoverEffects();
 });
 
@@ -1722,3 +1723,115 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+/* --------------------------------------------------------------------------
+   16. PODCAST SECTION - PINNED CARD STACK GSAP ANIMATION
+   -------------------------------------------------------------------------- */
+function initPodcastStackCards() {
+  const section = document.querySelector('#media.nk-pods');
+  const stage = document.querySelector('.pd-pin-stage');
+  const cards = document.querySelectorAll('.pd-stack-card');
+  const curEpLabel = document.querySelector('.pd-cur-ep');
+
+  if (!section || cards.length < 3 || !window.gsap || !window.ScrollTrigger) return;
+
+  const card0 = cards[0]; // EP. 01 Jay Morzaria
+  const card1 = cards[1]; // EP. 02 Naveen Yadav
+  const card2 = cards[2]; // EP. 03 Sankalp Arora
+
+  // Ensure card z-indexes so Card 2 stacks over Card 1, which stacks over Card 0
+  window.gsap.set(card0, { zIndex: 10, y: "110vh", opacity: 0, scale: 0.92, rotate: -2 });
+  window.gsap.set(card1, { zIndex: 20, y: "140vh", opacity: 0, scale: 0.92, rotate: 3 });
+  window.gsap.set(card2, { zIndex: 30, y: "170vh", opacity: 0, scale: 0.92, rotate: -1 });
+
+  // Pinned GSAP ScrollTrigger timeline with smooth scrub
+  const tl = window.gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: "top top",
+      end: "+=2600",
+      pin: true,
+      pinSpacing: true,
+      scrub: 0.8,
+      anticipatePin: 1,
+      onUpdate: (self) => {
+        if (!curEpLabel) return;
+        const p = self.progress;
+        if (p < 0.35) {
+          curEpLabel.textContent = "01";
+        } else if (p < 0.72) {
+          curEpLabel.textContent = "02";
+        } else {
+          curEpLabel.textContent = "03";
+        }
+      }
+    }
+  });
+
+  // Step 1: Bring Card 0 (EP. 01) into center over stage
+  tl.to(card0, {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    rotate: -1,
+    boxShadow: "0 10px 24px rgba(0,0,0,0.18), 6px 6px 0 var(--ink, #141414)",
+    duration: 1.0,
+    ease: "power2.out"
+  })
+  // Reading pause for Card 0
+  .to({}, { duration: 0.4 })
+
+  // Step 2: Bring Card 1 (EP. 02) to STACK directly on top of Card 0
+  .to(card1, {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    rotate: 1.5,
+    boxShadow: "0 16px 32px rgba(0,0,0,0.24), 7px 7px 0 var(--ink, #141414)",
+    duration: 1.2,
+    ease: "power2.out"
+  })
+  .to(card0, {
+    scale: 0.95,
+    y: -18,
+    rotate: -2.5,
+    filter: "brightness(0.92)",
+    boxShadow: "4px 4px 0 var(--ink, #141414)",
+    duration: 1.2,
+    ease: "power2.out"
+  }, "<")
+  // Reading pause for Card 1
+  .to({}, { duration: 0.4 })
+
+  // Step 3: Bring Card 2 (EP. 03) to STACK directly on top of Card 1
+  .to(card2, {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    rotate: -0.5,
+    boxShadow: "0 22px 42px rgba(0,0,0,0.3), 8px 8px 0 var(--ink, #141414)",
+    duration: 1.2,
+    ease: "power2.out"
+  })
+  .to(card1, {
+    scale: 0.95,
+    y: -18,
+    rotate: 1.5,
+    filter: "brightness(0.92)",
+    boxShadow: "5px 5px 0 var(--ink, #141414)",
+    duration: 1.2,
+    ease: "power2.out"
+  }, "<")
+  .to(card0, {
+    scale: 0.90,
+    y: -34,
+    rotate: -4,
+    filter: "brightness(0.85)",
+    boxShadow: "3px 3px 0 var(--ink, #141414)",
+    duration: 1.2,
+    ease: "power2.out"
+  }, "<")
+  // Hold full stack for viewing before unpinning and normal scroll continues
+  .to({}, { duration: 0.6 });
+}
+
