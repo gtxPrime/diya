@@ -7,14 +7,26 @@ AddCharset UTF-8 .html .css .js .xml .json .svg
 # 2. Disable directory browsing for security
 Options -Indexes
 
-# 3. Security Headers
+# 3. Security Headers & CORS for assets
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-XSS-Protection "1; mode=block"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    <FilesMatch "\.(ttf|otf|eot|woff|woff2|svg|png|jpg|jpeg|webp)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
 </IfModule>
 
-# 4. Gzip / Deflate Compression for high PageSpeed performance
+# 4. URL Rewriting & Resilient Image Path Resolution
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Fallback: if assets/images/category/file is requested, rewrite to assets/images/file
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^assets/images/[^/]+/(.+\.(jpg|jpeg|png|webp|svg))$ assets/images/$1 [L,NC]
+</IfModule>
+
+# 5. Gzip / Deflate Compression for high PageSpeed performance
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html
     AddOutputFilterByType DEFLATE text/css
@@ -29,7 +41,7 @@ Options -Indexes
     AddOutputFilterByType DEFLATE font/ttf
 </IfModule>
 
-# 5. Leverage Browser Caching
+# 6. Leverage Browser Caching
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresDefault "access plus 1 month"
@@ -56,7 +68,7 @@ Options -Indexes
     ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>
 
-# 6. Proper MIME Types
+# 7. Proper MIME Types
 <IfModule mod_mime.c>
     AddType text/css .css
     AddType application/javascript .js
