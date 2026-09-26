@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLenisAndGSAP();
   initNavbar();
   initLiveClock();
+  initLoaderAndHeroAnimation();
   initHeroAnimations();
   initQuickStatsCountup();
   initServicesAccordion();
@@ -176,36 +177,134 @@ function initLiveClock() {
 }
 
 /* --------------------------------------------------------------------------
-   4. HERO MICRO-ANIMATIONS (GSAP TEXT STAGGER, 3D TAG FLIP, PARALLAX)
+   4. EDITORIAL PRELOADER & CHOREOGRAPHED HERO ENTRANCE
+   -------------------------------------------------------------------------- */
+function initLoaderAndHeroAnimation() {
+  const loader = document.querySelector("#pageLoader");
+  const percentEl = document.querySelector("#loaderPercent");
+  const fillEl = document.querySelector("#loaderFill");
+  const statusEl = document.querySelector("#loaderStatus");
+
+  const statuses = [
+    { p: 0, text: "Overthinking a headline..." },
+    { p: 25, text: "Brewing strong hooks..." },
+    { p: 55, text: "Calibrating data x drama..." },
+    { p: 85, text: "Setting up the stage..." },
+    { p: 100, text: "Ready to launch!" }
+  ];
+
+  let progress = 0;
+  const duration = 1200; // 1.2s loader duration
+  const startTime = performance.now();
+
+  function updateLoader(now) {
+    const elapsed = now - startTime;
+    progress = Math.min(100, Math.round((elapsed / duration) * 100));
+
+    if (percentEl) percentEl.textContent = `${progress}%`;
+    if (fillEl) fillEl.style.width = `${progress}%`;
+
+    const matchStatus = statuses.filter(s => progress >= s.p).pop();
+    if (matchStatus && statusEl) statusEl.textContent = matchStatus.text;
+
+    if (progress < 100) {
+      requestAnimationFrame(updateLoader);
+    } else {
+      setTimeout(() => {
+        dismissLoaderAndPlayHero();
+      }, 160);
+    }
+  }
+
+  requestAnimationFrame(updateLoader);
+
+  function dismissLoaderAndPlayHero() {
+    if (window.gsap && loader) {
+      window.gsap.to(loader, {
+        yPercent: -100,
+        duration: 0.8,
+        ease: "power4.inOut",
+        onComplete: () => {
+          loader.style.display = "none";
+          playHeroEntrance();
+        }
+      });
+    } else {
+      if (loader) loader.style.display = "none";
+      playHeroEntrance();
+    }
+  }
+
+  function playHeroEntrance() {
+    if (!window.gsap) return;
+
+    const isDesktop = window.innerWidth >= 768;
+    const heroTL = window.gsap.timeline();
+
+    // 1. Center photo zooms & springs into place
+    heroTL.fromTo(".nk-hero-photo",
+      { scale: 0.72, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.7, ease: "back.out(1.6)" }
+    );
+
+    // 2. Diya letters emerge one-by-one from BEHIND the picture!
+    heroTL.fromTo(".hn-big .hn-l",
+      { y: 90, opacity: 0 },
+      { y: 0, opacity: 1, stagger: 0.11, duration: 0.65, ease: "back.out(1.8)" },
+      "-=0.35"
+    );
+
+    // 3. "CONTENT" slides from image to LEFT, "STRATEGIST" slides from image to RIGHT
+    if (isDesktop) {
+      heroTL.fromTo(".nk-hero-word.is-left",
+        { x: 150, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+        "-=0.55"
+      );
+      heroTL.fromTo(".nk-hero-word.is-right",
+        { x: -150, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+        "<"
+      );
+    } else {
+      heroTL.fromTo(".nk-hero-word.is-left",
+        { y: -35, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+        "-=0.4"
+      );
+      heroTL.fromTo(".nk-hero-word.is-right",
+        { y: 35, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+        "<"
+      );
+    }
+
+    // 4. Tag row & orbs pop out
+    heroTL.fromTo(".hn-tagrow",
+      { scale: 0.4, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2)" },
+      "-=0.35"
+    );
+    heroTL.fromTo(".nk-hero-photo .orb",
+      { scale: 0, opacity: 0 },
+      { scale: 1, opacity: 1, stagger: 0.12, duration: 0.45, ease: "back.out(2)" },
+      "-=0.3"
+    );
+
+    // 5. Hero sub card glides up
+    heroTL.fromTo(".nk-hero-sub",
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" },
+      "-=0.25"
+    );
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. HERO CONTINUOUS MICRO-ANIMATIONS (3D TAG FLIP, LETTER HOVER, PARALLAX)
    -------------------------------------------------------------------------- */
 function initHeroAnimations() {
   const tagEl = document.querySelector('.hn-tagrow .hn-w');
-
-  // GSAP 1. Hero Text Stagger Entrance
-  if (window.gsap) {
-    window.gsap.from(".hn-big .hn-l", {
-      y: 70,
-      opacity: 0,
-      stagger: 0.08,
-      duration: 0.9,
-      ease: "power3.out"
-    });
-    window.gsap.from(".nk-hero-stage .nk-hero-word", {
-      y: 40,
-      opacity: 0,
-      stagger: 0.15,
-      duration: 0.8,
-      ease: "power2.out",
-      delay: 0.25
-    });
-    window.gsap.from(".nk-hero-sub", {
-      y: 25,
-      opacity: 0,
-      duration: 0.85,
-      ease: "power2.out",
-      delay: 0.4
-    });
-  }
 
   // 3D Tag flip
   if (tagEl && window.gsap) {
