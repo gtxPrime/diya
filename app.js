@@ -3,7 +3,7 @@
    Lenis Smooth Scroll, GSAP Micro-Animations, and Complete Interactivity
    ========================================================================== */
 
-import { drawers, services, journey, clientGroups, faqs, linkFor, ASSET_MAP } from './portfolio-data.js';
+import { drawers, services, journey, clientGroups, faqs, linkFor, PORTFOLIO_ROOT, ASSET_MAP } from './portfolio-data.js';
 
 // Wait for DOM & libraries to load
 document.addEventListener("DOMContentLoaded", () => {
@@ -600,145 +600,279 @@ function initServicesAccordion() {
 /* --------------------------------------------------------------------------
    7. WORK CATEGORY TABS & DYNAMIC RENDERING (All 7 categories)
    -------------------------------------------------------------------------- */
+const WORK_IMGS = {
+  "love-podcasts": "./ARS6DUIL.jpg",
+  biryan: "./S3PWVBDW.jpg",
+  walls: "./JAEIEW3F.jpg",
+  city: "./Z2XTUUWY.jpg",
+  faces: "./Y56QNJNB.jpg",
+  nukkad: "./VEGWG6XZ.jpg"
+};
+
+const POP_IMAGES = [
+  "./Y4EG6CCM.jpg",
+  "./VJJXVYLX.jpg",
+  "./VYOVZX4T.jpg",
+  "./UUOPAPKS.jpg",
+  "./7T6SRKYN.jpg",
+  "./FZT6XOQE.jpg"
+];
+
+const WORK_THUMBS = {
+  "A multi-strategy walkthrough": "./WHMA2ALD.jpg",
+  "Creator Revenue Architecture": "./J4CIWBPV.jpg",
+  "Mila toh Haathi, Gayi toh Pooch": "./7RT5ZH34.jpg",
+  "The founder podcast": "./IWFNTYEV.jpg",
+  "Podcast Strategy by Diya": "./JSRGIRDM.jpg",
+  "Breaking news, handled": "./AZRQA3A4.jpg",
+  "When fiction becomes fact": "./WOGFRNLE.jpg",
+  "A novel about a robot": "./QK4PGT5D.jpg",
+  "Gamified event marketing": "./IVDS5N3Y.jpg",
+  "Homepage + ads, QA’d": "./A7LATOSQ.jpg",
+  "Talking reels, A to Z": "./RGGIDX4W.jpg",
+  "Scripts with a pulse": "./XPANUF67.jpg",
+  "Tools, reviewed": "./5VQMVEAO.jpg",
+  "Seller’s paradise": "./TSWX5BQ5.jpg",
+  "Level up your data game": "./P6MJW5M6.jpg",
+  "A rebrand, page by page": "./CCCH6TSV.jpg",
+  "The 3-volume brand": "./EDQJNRDF.jpg",
+  "Luck shouldn’t decide fame": "./G66JJWFL.jpg",
+  "Seek Ease": "./FX3M2B7P.jpg",
+  "AskIVA": "./JQSMRGUG.jpg",
+  "Glow, wireframed": "./YZ6FCLPJ.jpg",
+  "Shock-math in 5 seconds": "./5R6WT77H.jpg",
+  "Founder-led B2B": "./7GG7Q2WA.jpg",
+  "Taste of Home, Miles Away": "./HPZHSKX4.jpg",
+  "Helter, but strategic": "./KCAWNZKI.jpg",
+  "70+ pieces, one engine": "./5GRKOBKJ.jpg",
+  "Listicles, reviews, face-offs": "./5GRKOBKJ.jpg",
+  "Dermatologist approved": "./D4BAXOHL.jpg",
+  "Kahani, in Hindi": "./6RDO7DI7.jpg",
+  "Reviewer to lifestyle brand": "./7DOEAXHJ.jpg",
+  "58K views and counting": "./ZWUBLP4Y.jpg",
+  "2025 Ka Manhoos Saal": "./CLBWN37G.svg",
+  "The 1-person AI business": "./URZPG72K.png",
+  "Pattern hunting": "./URZPG72K.png",
+  "300K+ readers a month": "./FZH72YH3.png",
+  "B2B, but make it clear": "./5JSIJCE2.png",
+  "Best Facial Moisturizers": "./CMPG4IQJ.svg",
+  "Backlinks with manners": "./VNUTS6RC.svg",
+  "Affordable luxury": "./OKJRRSRM.svg"
+};
+
+const DARK_THUMBS = new Set(["./CLBWN37G.svg", "./URZPG72K.png", "./OKJRRSRM.svg", "./KCAWNZKI.jpg"]);
+const WORK_TONES = ["ink", "lime", "cream", "coral", "lilac", "yellow"];
+const WORK_MOTIFS = ["num", "ring", "stripe", "quote", "grid", "arrow"];
+
+function renderWorkCover(piece, no, drawerKey) {
+  if (piece.img && WORK_IMGS[piece.img]) {
+    return `
+      <div class="cv cv-photo">
+        <img src="${WORK_IMGS[piece.img]}" alt="${escapeHtml(piece.title)} campaign cover" loading="lazy">
+        <span class="cv-issue">No. ${String(no).padStart(2, '0')}</span>
+      </div>
+    `;
+  }
+  const tone = WORK_TONES[(no * 7 + drawerKey.length) % WORK_TONES.length];
+  const motif = WORK_MOTIFS[(no * 5 + drawerKey.length * 3) % WORK_MOTIFS.length];
+  const th = WORK_THUMBS[piece.title];
+  const isDark = th && DARK_THUMBS.has(th);
+
+  let motifText = '';
+  if (motif === 'num') motifText = String(no).padStart(2, '0');
+  else if (motif === 'quote') motifText = '“';
+  else if (motif === 'arrow') motifText = '↗';
+
+  const clientShort = piece.client ? piece.client.split(/[,(:/]/)[0].trim() : '';
+
+  return `
+    <div class="cv cv-${tone} cv-m-${motif}${th ? ' cv-hasdoc' : ''}" aria-hidden="true">
+      <div class="cv-top">
+        <span class="cv-mast">DN.</span>
+        <span class="cv-issue">No. ${String(no).padStart(2, '0')}</span>
+      </div>
+      ${th ? `<img class="cv-doc ${isDark ? 'is-dk' : ''}" src="${th}" alt="">` : ''}
+      <div class="cv-motif">${motifText}</div>
+      <h4 class="cv-title">${escapeHtml(piece.title)}</h4>
+      <div class="cv-bottom">
+        <span>${escapeHtml(piece.tag || '')}</span>
+        <span>${escapeHtml(clientShort)}</span>
+      </div>
+    </div>
+  `;
+}
+
 function initWorkTabs() {
   const tabsWrap = document.querySelector('.nk-work .nk-tabs');
   const piecesWrap = document.querySelector('.nk-work .nk-pieces');
   const blurbEl = document.querySelector('.nk-drawer-blurb');
   if (!tabsWrap || !piecesWrap) return;
 
-  let currentKey = drawers[0].key;
-  let isWorkExpanded = false;
+  // Clean up any extraneous expand wrapper left from prior revisions
+  const priorExpandWrap = document.querySelector('.nk-work .nk-work-expand-wrap');
+  if (priorExpandWrap) priorExpandWrap.remove();
 
-  // Render drawer tabs dynamically to ensure proper sync
+  // Compute issue number offsets across all 7 drawers (total 58 pieces)
+  const offsets = {};
+  let counter = 0;
+  drawers.forEach((d) => {
+    offsets[d.key] = counter;
+    counter += d.pieces.length;
+  });
+
+  let currentKey = drawers[0].key;
+  let isTransitioning = false;
+
+  // Render drawer category chips dynamically
   tabsWrap.innerHTML = drawers.map((d, i) => `
     <button role="tab" aria-selected="${i === 0}" class="${i === 0 ? 'is-on' : ''}" data-key="${d.key}">
       ${escapeHtml(d.label)} (${d.pieces.length})
     </button>
   `).join('');
 
-  // Prepare expand/collapse button container directly below the pieces grid
-  let expandWrap = document.querySelector('.nk-work .nk-work-expand-wrap');
-  if (!expandWrap) {
-    expandWrap = document.createElement('div');
-    expandWrap.className = 'nk-work-expand-wrap';
-    piecesWrap.after(expandWrap);
-  }
-
-  function getConciseLimit(key) {
-    return key === 'pop' ? 3 : 4;
-  }
-
-  // Function to render pieces for a category
-  function renderDrawer(key, animateAll = true) {
+  // Function to build HTML string and container class for a category
+  function buildContent(key) {
     const drawer = drawers.find(d => d.key === key) || drawers[0];
-    if (blurbEl) {
-      blurbEl.textContent = drawer.blurb;
+
+    if (key === 'pop') {
+      return {
+        isPop: true,
+        html: drawer.pieces.map((p, i) => `
+          <a class="pop-tile r${i % 3}" href="${linkFor('Pop-culture copies')}" target="_blank" rel="noopener noreferrer">
+            <img src="${POP_IMAGES[i]}" alt="Pop-culture copy: ${escapeHtml(p.title)}" loading="lazy">
+            <span class="pop-cap">
+              <b>${escapeHtml(p.tag)}</b>
+              ${escapeHtml(p.title)}
+            </span>
+          </a>
+        `).join('')
+      };
     }
 
-    const limit = getConciseLimit(key);
-    const hasMore = drawer.pieces.length > limit;
-    const piecesToRender = (!isWorkExpanded && hasMore) 
-      ? drawer.pieces.slice(0, limit) 
-      : drawer.pieces;
+    return {
+      isPop: false,
+      html: drawer.pieces.map((p, i) => {
+        const issueNo = offsets[key] + i + 1;
+        const isLead = i === 0;
+        const coverHtml = renderWorkCover(p, issueNo, key);
+        const href = linkFor(p.title);
+        const linkText = (href === PORTFOLIO_ROOT) ? 'Browse the portfolio' : 'See the work';
 
-    piecesWrap.innerHTML = piecesToRender.map((p, i) => {
-      const issueNo = String(i + 1).padStart(2, '0');
-      const href = linkFor(p.title);
-      const imgSrc = resolveImage(p.img || p.title);
-      const isLead = key !== 'pop' && i === 0;
-
-      return `
-        <article class="nk-piece ${isLead ? 'is-lead' : ''}">
-          <div class="cv cv-photo">
-            <img src="${imgSrc}" alt="${escapeHtml(p.title)} campaign cover" loading="lazy">
-            <span class="cv-issue">No. ${issueNo}</span>
-          </div>
-          <div class="nk-piece-body">
-            <p class="nk-piece-tag">${escapeHtml(p.tag || 'Strategy')}</p>
-            <h3>${escapeHtml(p.title)}</h3>
-            <p class="nk-piece-client">${escapeHtml(p.client || '')}</p>
-            <p>${escapeHtml(p.text || '')}</p>
-            <a class="nk-piece-link" href="${href}" target="_blank" rel="noopener noreferrer">See the work ↗</a>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    // Render Expand / Collapse button if there are more pieces
-    if (hasMore) {
-      if (!isWorkExpanded) {
-        expandWrap.innerHTML = `
-          <button type="button" class="nk-work-expand-btn" id="workExpandToggle">
-            <span>Explore all ${drawer.pieces.length} projects</span>
-            <span class="nk-work-expand-icon" aria-hidden="true">↓</span>
-          </button>
-          <span class="nk-work-expand-badge">Showing ${limit} of ${drawer.pieces.length} projects in this drawer</span>
+        return `
+          <article class="nk-piece ${isLead ? 'is-lead' : ''}">
+            ${coverHtml}
+            <div class="nk-piece-body">
+              <p class="nk-piece-tag">${escapeHtml(p.tag || '')}</p>
+              <h3>${escapeHtml(p.title)}</h3>
+              <p class="nk-piece-client">${escapeHtml(p.client || '')}</p>
+              <p>${escapeHtml(p.text || '')}</p>
+              <a class="nk-piece-link" href="${href}" target="_blank" rel="noopener noreferrer">${linkText} ↗</a>
+            </div>
+          </article>
         `;
-      } else {
-        expandWrap.innerHTML = `
-          <button type="button" class="nk-work-expand-btn is-collapsed-btn" id="workExpandToggle">
-            <span>Show concise preview</span>
-            <span class="nk-work-expand-icon" aria-hidden="true">↑</span>
-          </button>
-          <span class="nk-work-expand-badge">Showing all ${drawer.pieces.length} projects</span>
-        `;
+      }).join('')
+    };
+  }
+
+  // Smooth tab switch animation (no jump)
+  function switchTab(key) {
+    if (isTransitioning || key === currentKey) return;
+    isTransitioning = true;
+
+    // Update active tab buttons immediately with tactile bounce
+    tabsWrap.querySelectorAll('button').forEach(btn => {
+      const isSelected = btn.dataset.key === key;
+      btn.classList.toggle('is-on', isSelected);
+      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      if (isSelected && window.gsap) {
+        window.gsap.fromTo(btn, { scale: 0.94 }, { scale: 1, duration: 0.28, ease: "back.out(2)" });
       }
+    });
 
-      const expandBtn = expandWrap.querySelector('#workExpandToggle');
-      if (expandBtn) {
-        expandBtn.onclick = (e) => {
-          e.preventDefault();
-          isWorkExpanded = !isWorkExpanded;
+    const nextDrawer = drawers.find(d => d.key === key) || drawers[0];
+    const oldCards = Array.from(piecesWrap.children);
 
-          if (!isWorkExpanded) {
-            // Collapsing: render concise and scroll back up to tabs smoothly
-            renderDrawer(currentKey, false);
-            scrollToTarget(tabsWrap, -85);
-          } else {
-            // Expanding: render all items and stagger animate
-            renderDrawer(currentKey, true);
+    if (window.gsap && oldCards.length > 0) {
+      // 1. Smoothly animate out current cards & blurb
+      const tl = window.gsap.timeline({
+        onComplete: () => {
+          // 2. Swap DOM content during the invisible transition point
+          currentKey = key;
+          const built = buildContent(key);
+          piecesWrap.className = built.isPop ? 'pop-wall' : 'nk-pieces';
+          piecesWrap.innerHTML = built.html;
+          if (blurbEl) blurbEl.textContent = nextDrawer.blurb;
+
+          // 3. Stagger animate in newly rendered cards
+          const newCards = Array.from(piecesWrap.children);
+          window.gsap.fromTo(newCards,
+            { opacity: 0, y: 26, scale: 0.97 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.44,
+              stagger: 0.04,
+              ease: "back.out(1.2)",
+              onComplete: () => {
+                isTransitioning = false;
+                if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+                if (lenis) lenis.resize();
+              }
+            }
+          );
+
+          if (blurbEl) {
+            window.gsap.fromTo(blurbEl,
+              { opacity: 0, y: 8 },
+              { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
+            );
           }
+        }
+      });
 
-          if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-          if (lenis) lenis.resize();
-        };
+      tl.to(oldCards, {
+        opacity: 0,
+        y: -14,
+        scale: 0.98,
+        duration: 0.2,
+        stagger: 0.015,
+        ease: "power2.in"
+      }, 0);
+
+      if (blurbEl) {
+        tl.to(blurbEl, {
+          opacity: 0,
+          y: -6,
+          duration: 0.16,
+          ease: "power2.in"
+        }, 0);
       }
     } else {
-      expandWrap.innerHTML = '';
+      // Fallback if GSAP is unavailable
+      currentKey = key;
+      const built = buildContent(key);
+      piecesWrap.className = built.isPop ? 'pop-wall' : 'nk-pieces';
+      piecesWrap.innerHTML = built.html;
+      if (blurbEl) blurbEl.textContent = nextDrawer.blurb;
+      isTransitioning = false;
+      if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+      if (lenis) lenis.resize();
     }
-
-    // Animate newly rendered cards with GSAP stagger
-    if (window.gsap && animateAll) {
-      window.gsap.fromTo(piecesWrap.querySelectorAll('.nk-piece'), 
-        { opacity: 0, y: 22 },
-        { opacity: 1, y: 0, duration: 0.45, stagger: 0.04, ease: "power2.out" }
-      );
-    }
-
-    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
-    if (lenis) lenis.resize();
   }
 
-  // Initial render of first category (concise by default)
-  renderDrawer(currentKey, false);
+  // Initial render of first category
+  const initialBuilt = buildContent(currentKey);
+  piecesWrap.className = initialBuilt.isPop ? 'pop-wall' : 'nk-pieces';
+  piecesWrap.innerHTML = initialBuilt.html;
+  if (blurbEl) blurbEl.textContent = drawers[0].blurb;
 
-  // Tab click listener: resets isWorkExpanded to false for concise default
+  // Tab click event delegation
   tabsWrap.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
     const key = btn.dataset.key;
-    if (!key || key === currentKey) return;
-
-    tabsWrap.querySelectorAll('button').forEach(b => {
-      b.classList.remove('is-on');
-      b.setAttribute('aria-selected', 'false');
-    });
-    btn.classList.add('is-on');
-    btn.setAttribute('aria-selected', 'true');
-
-    currentKey = key;
-    isWorkExpanded = false; // Always concise by default on tab switch
-    renderDrawer(currentKey, true);
+    if (key) switchTab(key);
   });
 }
 
