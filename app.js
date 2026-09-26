@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLetterDetails();
   initScrollReveals();
   initClapperAnimation();
+  initProcessCardsTilt();
   initMicroHoverEffects();
 });
 
@@ -1162,6 +1163,125 @@ function initClapperAnimation() {
         .to(clapTop, { rotate: -26, duration: 0.1, ease: "power2.out" })
         .to(clapTop, { rotate: -6, duration: 0.25, ease: "bounce.out" });
     }
+  });
+}
+
+/* --------------------------------------------------------------------------
+   15. PROCESS WHITE CARDS CUTE TILT ON HOVER
+   -------------------------------------------------------------------------- */
+function initProcessCardsTilt() {
+  const prTrack = document.querySelector('.pr-track');
+  const cards = document.querySelectorAll('.pr-step');
+  if (!cards.length || !window.gsap) return;
+
+  // 1. Staggered cute entrance on scroll
+  if (prTrack && window.ScrollTrigger) {
+    window.gsap.fromTo(
+      cards,
+      {
+        opacity: 0,
+        y: 40,
+        scale: 0.9,
+        rotateZ: (i) => (i % 2 === 0 ? -4 : 4)
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        rotateZ: 0,
+        duration: 0.75,
+        stagger: 0.09,
+        ease: "back.out(1.8)",
+        scrollTrigger: {
+          trigger: prTrack,
+          start: "top 85%",
+          toggleActions: "play none none none"
+        }
+      }
+    );
+  }
+
+  // 2. Cute tilt and mouse follow on hover
+  cards.forEach((card, idx) => {
+    // Alternating playful personality tilt: card 0: -2.2deg, card 1: +2.2deg, card 2: -2.2deg, card 3: +2.2deg
+    const baseTilt = idx % 2 === 0 ? -2.2 : 2.2;
+    const nextArrow = card.nextElementSibling && card.nextElementSibling.classList.contains('pr-arrow')
+      ? card.nextElementSibling
+      : null;
+
+    const onMouseMove = (e) => {
+      const rect = card.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      // Normalized coordinates (-1 to 1)
+      const normX = Math.max(-1.2, Math.min(1.2, (e.clientX - centerX) / (rect.width / 2)));
+      const normY = Math.max(-1.2, Math.min(1.2, (e.clientY - centerY) / (rect.height / 2)));
+
+      // Cute dynamic 3D + 2D tilt
+      const targetX = normX * 8;
+      const targetY = -8 + normY * 5; // Float upwards with subtle vertical follow
+      const targetRotateZ = baseTilt + normX * 4;
+      const targetRotateX = -normY * 8;
+      const targetRotateY = normX * 10;
+
+      window.gsap.to(card, {
+        x: targetX,
+        y: targetY,
+        rotateZ: targetRotateZ,
+        rotateX: targetRotateX,
+        rotateY: targetRotateY,
+        scale: 1.05,
+        duration: 0.24,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+
+      if (nextArrow) {
+        window.gsap.to(nextArrow, {
+          x: 5,
+          scale: 1.15,
+          duration: 0.24,
+          ease: "power2.out",
+          overwrite: "auto"
+        });
+      }
+    };
+
+    const onMouseLeave = () => {
+      window.gsap.to(card, {
+        x: 0,
+        y: 0,
+        rotateZ: 0,
+        rotateX: 0,
+        rotateY: 0,
+        scale: 1,
+        duration: 0.65,
+        ease: "elastic.out(1.2, 0.4)",
+        overwrite: "auto"
+      });
+
+      if (nextArrow) {
+        window.gsap.to(nextArrow, {
+          x: 0,
+          scale: 1,
+          duration: 0.4,
+          ease: "power2.out",
+          overwrite: "auto"
+        });
+      }
+    };
+
+    card.addEventListener('mouseenter', onMouseMove);
+    card.addEventListener('mousemove', onMouseMove);
+    card.addEventListener('mouseleave', onMouseLeave);
+
+    // Cute squish bounce on click
+    card.addEventListener('click', () => {
+      window.gsap.timeline()
+        .to(card, { scale: 0.94, duration: 0.1, ease: "power2.in" })
+        .to(card, { scale: 1.05, duration: 0.25, ease: "back.out(2)" });
+    });
   });
 }
 

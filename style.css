@@ -8195,8 +8195,9 @@ h2.nk-serif {
   margin: 0 auto;
   overflow-x: auto;
   gap: 8px;
-  padding: 7px 4px 14px;
+  padding: 18px 8px 18px;
   scrollbar-width: thin;
+  perspective: 800px;
 }
 .pr-step {
   flex: 1 0 145px;
@@ -8208,6 +8209,13 @@ h2.nk-serif {
   padding: 14px 12px;
   border: 2px solid var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  will-change: transform;
+  transform-style: preserve-3d;
+  transition: box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.pr-step:hover {
+  box-shadow: 6px 8px 0 var(--ink);
 }
 .pr-step small {
   font: 700 12px var(--sans);
@@ -8795,8 +8803,7 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
 .pg-card,
 .rs-proof,
 .st-card,
-.qs-card,
-.pr-step {
+.qs-card {
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
