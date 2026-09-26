@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initJourneyTabs();
   initFaqAccordion();
   initTestimonialsSlider();
-  initFavsCarousel();
+  initFavsHorizontalScroll();
   initLetterDetails();
   initScrollReveals();
   initClapperAnimation();
@@ -1306,36 +1306,66 @@ function initTestimonialsSlider() {
 }
 
 /* --------------------------------------------------------------------------
-   IRL FAVS HORIZONTAL CAROUSEL SWIPE & DRAG (#rooms)
+   IRL FAVS PINNED GSAP HORIZONTAL SCROLL WITH FADING SHADOW EDGES (#rooms)
    -------------------------------------------------------------------------- */
-function initFavsCarousel() {
+function initFavsHorizontalScroll() {
+  const section = document.querySelector('#rooms.st');
+  const viewport = document.querySelector('.st-viewport');
   const row = document.querySelector('.st-row');
-  if (!row) return;
+  const progressFill = document.querySelector('.st-scroll-fill');
 
-  let isDown = false;
-  let startX;
-  let scrollLeft;
+  if (!section || !viewport || !row || !window.gsap || !window.ScrollTrigger) return;
 
-  row.addEventListener('mousedown', (e) => {
-    isDown = true;
-    row.classList.add('active');
-    startX = e.pageX - row.offsetLeft;
-    scrollLeft = row.scrollLeft;
+  // Calculate total horizontal scroll distance needed
+  const getScrollDistance = () => {
+    return Math.max(0, row.scrollWidth - viewport.clientWidth + 120);
+  };
+
+  // Horizontal scrubbed translation powered by ScrollTrigger
+  window.gsap.to(row, {
+    x: () => -getScrollDistance(),
+    ease: "none",
+    scrollTrigger: {
+      trigger: section,
+      pin: true,
+      pinSpacing: true,
+      start: "top top",
+      end: () => `+=${Math.max(1500, getScrollDistance() * 1.25)}`,
+      scrub: 1,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        if (progressFill) {
+          progressFill.style.width = `${Math.min(100, Math.max(0, self.progress * 100))}%`;
+        }
+      }
+    }
   });
-  row.addEventListener('mouseleave', () => {
-    isDown = false;
-    row.classList.remove('active');
-  });
-  row.addEventListener('mouseup', () => {
-    isDown = false;
-    row.classList.remove('active');
-  });
-  row.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - row.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    row.scrollLeft = scrollLeft - walk;
+
+  // Micro tilt & lift on card mouse interaction
+  const cards = row.querySelectorAll('.st-card');
+  cards.forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      window.gsap.to(card, {
+        y: -10,
+        rotate: 0,
+        scale: 1.03,
+        boxShadow: "10px 14px 0 var(--purple, #7c3aed), 10px 14px 0 2.5px var(--ink, #141414)",
+        duration: 0.25,
+        ease: "power2.out"
+      });
+    });
+    card.addEventListener('mouseleave', () => {
+      const origRotate = card.classList.contains('r1') ? 1.5 : (card.classList.contains('r2') ? -0.75 : -1.5);
+      window.gsap.to(card, {
+        y: 0,
+        rotate: origRotate,
+        scale: 1,
+        boxShadow: "6px 6px 0 var(--purple, #7c3aed), 6px 6px 0 2.5px var(--ink, #141414)",
+        duration: 0.35,
+        ease: "power2.out"
+      });
+    });
   });
 }
 
