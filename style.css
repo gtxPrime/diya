@@ -8853,3 +8853,136 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
   }
 }
 
+/* ==========================================================================
+   WORK SECTION HEADER FIX & EXPANDABLE DRAWER STYLING
+   ========================================================================== */
+
+/* Universal scroll margin for sticky nav breathing room */
+#about, #results, #work, #journey, #featured, #media, #playground, #rooms, #letter, #testimonials, #contact, #process {
+  scroll-margin-top: 86px !important;
+}
+
+/* Fix Work Section Header so title is never cut off */
+#work {
+  padding-top: 54px !important;
+  overflow: visible !important;
+}
+.nk-work-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  margin-bottom: 26px !important;
+  padding-top: 14px !important;
+  overflow: visible !important;
+}
+.nk-work-head h2.nk-serif {
+  margin: 0 auto 12px !important;
+  overflow: visible !important;
+}
+.nk-work-head p {
+  text-align: center !important;
+  margin: 0 auto !important;
+  max-width: 600px !important;
+  font-size: 15px !important;
+  color: rgba(20, 20, 20, 0.72) !important;
+}
+
+/* Rich Lead Piece & Card Styling */
+.nk-piece-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--cond, "Antonio"), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 3px solid var(--purple);
+  padding-bottom: 2px;
+  transition: all 0.2s ease;
+}
+.nk-piece-link:hover {
+  background: var(--yellow) !important;
+  border-bottom-color: var(--ink);
+}
+.nk-piece.is-lead .cv {
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--yellow) !important;
+}
+.cv-photo {
+  background: #111;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.cv-issue {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--cond, "Antonio"), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  z-index: 2;
+}
+
+/* Work Expand / Collapse Controls */
+.nk-work-expand-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 38px;
+  gap: 12px;
+  width: 100%;
+}
+.nk-work-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 30px !important;
+  font-family: var(--cond, "Antonio"), sans-serif !important;
+  font-size: 18px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  border-radius: 999px !important;
+  border: 2px solid var(--ink) !important;
+  box-shadow: 4px 4px 0 var(--ink) !important;
+  background: var(--yellow, #f7d432) !important;
+  color: var(--ink, #141414) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease !important;
+}
+.nk-work-expand-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 6px 6px 0 var(--ink) !important;
+  background: #ffe359 !important;
+}
+.nk-work-expand-btn.is-collapsed-btn {
+  background: #fff !important;
+}
+.nk-work-expand-btn .nk-work-expand-icon {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+.nk-work-expand-badge {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(20, 20, 20, 0.65);
+  letter-spacing: 0.02em;
+}
+
