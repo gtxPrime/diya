@@ -9371,25 +9371,7 @@ body:has(> #root > .artifact-card){background:transparent}body:has(> #root > .ar
   }
 }
 
-/* 5. Compact Podcasts & Media Showcase (#media) */
-.nk-pods {
-  padding-top: 36px !important;
-  padding-bottom: 40px !important;
-}
-@media (min-width: 840px) {
-  .pd-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 16px !important;
-  }
-}
-.pd-cover.pd-v2 {
-  aspect-ratio: auto !important;
-  padding: 16px !important;
-  min-height: auto !important;
-}
-.pd-cover.pd-v2 .pd-hero {
-  height: 180px !important;
-}
+
 
 /* 6. Compact Results & Proofs Section (#results) */
 .nk-numbers {

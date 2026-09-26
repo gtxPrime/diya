@@ -6,7 +6,7 @@
 import { drawers, services, journey, clientGroups, faqs, linkFor, PORTFOLIO_ROOT, ASSET_MAP } from './portfolio-data.js';
 
 // Wait for DOM & libraries to load
-document.addEventListener("DOMContentLoaded", () => {
+function initApp() {
   initLenisAndGSAP();
   initNavbar();
   initLiveClock();
@@ -19,13 +19,25 @@ document.addEventListener("DOMContentLoaded", () => {
   initJourneyTabs();
   initFaqAccordion();
   initTestimonialsSlider();
+  initPodcastStackCards();
   initFavsHorizontalScroll();
   initLetterDetails();
   initScrollReveals();
   initClapperAnimation();
   initProcessCardsTilt();
-  initPodcastStackCards();
   initMicroHoverEffects();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
+
+window.addEventListener("load", () => {
+  if (typeof window.ScrollTrigger !== "undefined") {
+    window.ScrollTrigger.refresh();
+  }
 });
 
 /* --------------------------------------------------------------------------
@@ -237,10 +249,16 @@ function initLoaderAndHeroAnimation() {
         ease: "power4.inOut",
         onComplete: () => {
           loader.style.display = "none";
+          if (typeof window.ScrollTrigger !== "undefined") {
+            window.ScrollTrigger.refresh();
+          }
         }
       });
     } else {
       if (loader) loader.style.display = "none";
+      if (typeof window.ScrollTrigger !== "undefined") {
+        window.ScrollTrigger.refresh();
+      }
     }
   }
 
@@ -685,7 +703,7 @@ function renderWorkCover(piece, no, drawerKey) {
   else if (motif === 'quote') motifText = '“';
   else if (motif === 'arrow') motifText = '↗';
 
-  const clientShort = piece.client ? piece.client.split(/[,(:/]/)[0].trim() : '';
+  const clientShort = piece.client ? piece.client.split(/[,(:\/]/)[0].trim() : '';
 
   return `
     <div class="cv cv-${tone} cv-m-${motif}${th ? ' cv-hasdoc' : ''}" aria-hidden="true">
@@ -1759,7 +1777,6 @@ function escapeHtml(str) {
    -------------------------------------------------------------------------- */
 function initPodcastStackCards() {
   const section = document.querySelector('#media.nk-pods');
-  const stage = document.querySelector('.pd-pin-stage');
   const cards = document.querySelectorAll('.pd-stack-card');
   const curEpLabel = document.querySelector('.pd-cur-ep');
 
@@ -1769,27 +1786,48 @@ function initPodcastStackCards() {
   const card1 = cards[1]; // EP. 02 Naveen Yadav
   const card2 = cards[2]; // EP. 03 Sankalp Arora
 
-  // Ensure card z-indexes so Card 2 stacks over Card 1, which stacks over Card 0
-  window.gsap.set(card0, { zIndex: 10, y: "110vh", opacity: 0, scale: 0.92, rotate: -2 });
-  window.gsap.set(card1, { zIndex: 20, y: "140vh", opacity: 0, scale: 0.92, rotate: 3 });
-  window.gsap.set(card2, { zIndex: 30, y: "170vh", opacity: 0, scale: 0.92, rotate: -1 });
+  // Ensure card z-indexes and initial state:
+  // Card 0 starts in center so user sees title + Card 1 as they arrive
+  window.gsap.set(card0, {
+    zIndex: 10,
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    rotate: -1,
+    boxShadow: "0 10px 24px rgba(0,0,0,0.18), 6px 6px 0 var(--ink, #141414)"
+  });
+  window.gsap.set(card1, {
+    zIndex: 20,
+    y: "115vh",
+    opacity: 0,
+    scale: 0.92,
+    rotate: 2.5
+  });
+  window.gsap.set(card2, {
+    zIndex: 30,
+    y: "125vh",
+    opacity: 0,
+    scale: 0.92,
+    rotate: -1
+  });
 
   // Pinned GSAP ScrollTrigger timeline with smooth scrub
   const tl = window.gsap.timeline({
     scrollTrigger: {
       trigger: section,
       start: "top top",
-      end: "+=2600",
+      end: "+=2200",
       pin: true,
       pinSpacing: true,
-      scrub: 0.8,
+      scrub: 1,
       anticipatePin: 1,
+      invalidateOnRefresh: true,
       onUpdate: (self) => {
         if (!curEpLabel) return;
         const p = self.progress;
-        if (p < 0.35) {
+        if (p < 0.42) {
           curEpLabel.textContent = "01";
-        } else if (p < 0.72) {
+        } else if (p < 0.78) {
           curEpLabel.textContent = "02";
         } else {
           curEpLabel.textContent = "03";
@@ -1798,20 +1836,10 @@ function initPodcastStackCards() {
     }
   });
 
-  // Step 1: Bring Card 0 (EP. 01) into center over stage
-  tl.to(card0, {
-    y: 0,
-    opacity: 1,
-    scale: 1,
-    rotate: -1,
-    boxShadow: "0 10px 24px rgba(0,0,0,0.18), 6px 6px 0 var(--ink, #141414)",
-    duration: 1.0,
-    ease: "power2.out"
-  })
-  // Reading pause for Card 0
-  .to({}, { duration: 0.4 })
+  // Hold card 0 briefly
+  tl.to({}, { duration: 0.3 })
 
-  // Step 2: Bring Card 1 (EP. 02) to STACK directly on top of Card 0
+  // Step 1: Bring Card 1 (EP. 02) to STACK directly on top of Card 0
   .to(card1, {
     y: 0,
     opacity: 1,
@@ -1830,10 +1858,11 @@ function initPodcastStackCards() {
     duration: 1.2,
     ease: "power2.out"
   }, "<")
+
   // Reading pause for Card 1
   .to({}, { duration: 0.4 })
 
-  // Step 3: Bring Card 2 (EP. 03) to STACK directly on top of Card 1
+  // Step 2: Bring Card 2 (EP. 03) to STACK directly on top of Card 1
   .to(card2, {
     y: 0,
     opacity: 1,
@@ -1861,7 +1890,8 @@ function initPodcastStackCards() {
     duration: 1.2,
     ease: "power2.out"
   }, "<")
-  // Hold full stack for viewing before unpinning and normal scroll continues
-  .to({}, { duration: 0.6 });
+
+  // Hold full stack for viewing before unpinning
+  .to({}, { duration: 0.5 });
 }
 
