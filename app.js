@@ -446,75 +446,155 @@ function initQuickStatsCountup() {
 }
 
 /* --------------------------------------------------------------------------
-   6. SERVICES ACCORDION (Interactive Expand/Collapse for all 6 items)
+   6. SERVICES ACCORDION & GENERAL ACCORDION ENGINE
    -------------------------------------------------------------------------- */
-function initServicesAccordion() {
-  const servicesWrap = document.querySelector('.nk-services .nk-acc');
-  if (!servicesWrap) return;
+function setupSmoothAccordion(container, itemsData) {
+  if (!container) return;
 
-  // Build the complete accordion items from portfolio-data.js
-  servicesWrap.innerHTML = services.map(([title, desc], idx) => {
+  container.innerHTML = itemsData.map(([title, desc], idx) => {
     const isOpen = idx === 0;
     return `
       <div class="nk-acc-item ${isOpen ? 'is-open' : ''}" data-idx="${idx}">
         <button aria-expanded="${isOpen}" type="button">
           <span>${idx + 1}. ${escapeHtml(title)}</span>
-          <i aria-hidden="true">${isOpen ? '−' : '+'}</i>
+          <i aria-hidden="true" style="display:inline-block; transform: rotate(${isOpen ? 45 : 0}deg);">+</i>
         </button>
-        <p style="${isOpen ? 'max-height: 500px; opacity: 1; margin: 0 0 18px;' : 'max-height: 0; opacity: 0; margin: 0; overflow: hidden;'}">${escapeHtml(desc)}</p>
+        <p style="${isOpen ? 'height: auto; opacity: 1; margin-bottom: 18px; display: block;' : 'height: 0; opacity: 0; margin-bottom: 0; display: none; overflow: hidden;'}">${escapeHtml(desc)}</p>
       </div>
     `;
   }).join('');
 
-  // Attach interactive toggle handler
-  servicesWrap.addEventListener('click', (e) => {
+  container.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
     const item = btn.closest('.nk-acc-item');
     if (!item) return;
 
     const isOpen = item.classList.contains('is-open');
+
+    if (isOpen) {
+      closeItem(item);
+    } else {
+      // Single-open accordion: smoothly close all other open items
+      container.querySelectorAll('.nk-acc-item.is-open').forEach(other => {
+        if (other !== item) {
+          closeItem(other);
+        }
+      });
+      openItem(item);
+    }
+  });
+
+  function openItem(item) {
+    const btn = item.querySelector('button');
     const p = item.querySelector('p');
     const icon = item.querySelector('i');
 
-    if (isOpen) {
-      item.classList.remove('is-open');
-      btn.setAttribute('aria-expanded', 'false');
-      if (icon) icon.textContent = '+';
-      if (window.gsap) {
-        window.gsap.to(p, { maxHeight: 0, opacity: 0, marginBottom: 0, duration: 0.35, ease: "power2.inOut" });
-      } else {
-        p.style.maxHeight = '0px';
-        p.style.opacity = '0';
-      }
-    } else {
-      // Close other items for single-open accordion feel
-      servicesWrap.querySelectorAll('.nk-acc-item.is-open').forEach(other => {
-        other.classList.remove('is-open');
-        other.querySelector('button').setAttribute('aria-expanded', 'false');
-        const otherIcon = other.querySelector('i');
-        if (otherIcon) otherIcon.textContent = '+';
-        const otherP = other.querySelector('p');
-        if (window.gsap) {
-          window.gsap.to(otherP, { maxHeight: 0, opacity: 0, marginBottom: 0, duration: 0.35, ease: "power2.inOut" });
-        } else {
-          otherP.style.maxHeight = '0px';
-          otherP.style.opacity = '0';
-        }
-      });
+    item.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
 
-      item.classList.add('is-open');
-      btn.setAttribute('aria-expanded', 'true');
-      if (icon) icon.textContent = '−';
-      if (window.gsap) {
-        window.gsap.to(p, { maxHeight: 500, opacity: 1, marginBottom: 18, duration: 0.45, ease: "power2.out" });
-      } else {
-        p.style.maxHeight = '500px';
-        p.style.opacity = '1';
-        p.style.marginBottom = '18px';
+    if (window.gsap && p) {
+      window.gsap.killTweensOf(p);
+      if (icon) window.gsap.killTweensOf(icon);
+
+      p.style.display = 'block';
+      p.style.overflow = 'hidden';
+      p.style.height = 'auto';
+      const targetHeight = p.offsetHeight;
+
+      window.gsap.fromTo(p,
+        {
+          height: 0,
+          opacity: 0,
+          y: -10,
+          marginBottom: 0
+        },
+        {
+          height: targetHeight,
+          opacity: 1,
+          y: 0,
+          marginBottom: 18,
+          duration: 0.42,
+          ease: "power3.out",
+          onComplete: () => {
+            p.style.height = 'auto';
+            if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+          }
+        }
+      );
+
+      if (icon) {
+        window.gsap.to(icon, {
+          rotate: 45,
+          duration: 0.35,
+          ease: "back.out(2)"
+        });
       }
+    } else if (p) {
+      p.style.display = 'block';
+      p.style.height = 'auto';
+      p.style.opacity = '1';
+      p.style.marginBottom = '18px';
+      if (icon) icon.style.transform = 'rotate(45deg)';
     }
-  });
+  }
+
+  function closeItem(item) {
+    const btn = item.querySelector('button');
+    const p = item.querySelector('p');
+    const icon = item.querySelector('i');
+
+    item.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+
+    if (window.gsap && p) {
+      window.gsap.killTweensOf(p);
+      if (icon) window.gsap.killTweensOf(icon);
+
+      const startHeight = p.offsetHeight;
+      p.style.overflow = 'hidden';
+
+      window.gsap.fromTo(p,
+        {
+          height: startHeight,
+          opacity: 1,
+          y: 0,
+          marginBottom: 18
+        },
+        {
+          height: 0,
+          opacity: 0,
+          y: -8,
+          marginBottom: 0,
+          duration: 0.32,
+          ease: "power3.inOut",
+          onComplete: () => {
+            p.style.display = 'none';
+            if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+          }
+        }
+      );
+
+      if (icon) {
+        window.gsap.to(icon, {
+          rotate: 0,
+          duration: 0.3,
+          ease: "power2.inOut"
+        });
+      }
+    } else if (p) {
+      p.style.display = 'none';
+      p.style.height = '0';
+      p.style.opacity = '0';
+      p.style.marginBottom = '0';
+      if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+  }
+}
+
+function initServicesAccordion() {
+  const servicesWrap = document.querySelector('.nk-services .nk-acc');
+  setupSmoothAccordion(servicesWrap, services);
 }
 
 /* --------------------------------------------------------------------------
@@ -753,53 +833,7 @@ function initJourneyTabs() {
    -------------------------------------------------------------------------- */
 function initFaqAccordion() {
   const faqWrap = document.querySelector('.nk-faq .nk-acc');
-  if (!faqWrap) return;
-
-  faqWrap.innerHTML = faqs.map(([q, a], idx) => {
-    const isOpen = idx === 0;
-    return `
-      <div class="nk-acc-item ${isOpen ? 'is-open' : ''}">
-        <button aria-expanded="${isOpen}" type="button">
-          <span>${idx + 1}. ${escapeHtml(q)}</span>
-          <i aria-hidden="true">${isOpen ? '−' : '+'}</i>
-        </button>
-        <p style="${isOpen ? 'max-height: 500px; opacity: 1; margin: 0 0 18px;' : 'max-height: 0; opacity: 0; margin: 0; overflow: hidden;'}">${escapeHtml(a)}</p>
-      </div>
-    `;
-  }).join('');
-
-  faqWrap.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const item = btn.closest('.nk-acc-item');
-    if (!item) return;
-
-    const isOpen = item.classList.contains('is-open');
-    const p = item.querySelector('p');
-    const icon = item.querySelector('i');
-
-    if (isOpen) {
-      item.classList.remove('is-open');
-      btn.setAttribute('aria-expanded', 'false');
-      if (icon) icon.textContent = '+';
-      if (window.gsap) {
-        window.gsap.to(p, { maxHeight: 0, opacity: 0, duration: 0.3, ease: "power2.inOut" });
-      } else {
-        p.style.maxHeight = '0px';
-        p.style.opacity = '0';
-      }
-    } else {
-      item.classList.add('is-open');
-      btn.setAttribute('aria-expanded', 'true');
-      if (icon) icon.textContent = '−';
-      if (window.gsap) {
-        window.gsap.to(p, { maxHeight: 500, opacity: 1, duration: 0.4, ease: "power2.out" });
-      } else {
-        p.style.maxHeight = '500px';
-        p.style.opacity = '1';
-      }
-    }
-  });
+  setupSmoothAccordion(faqWrap, faqs);
 }
 
 /* --------------------------------------------------------------------------
