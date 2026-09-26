@@ -18,6 +18,59 @@
   <!-- Lenis Smooth Scroll -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.css">
   <link rel="stylesheet" href="./style.css">
+
+  <style>
+    /* Critical preloader & anti-FOUC styles */
+    .nk-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 999999;
+      background-color: #f4eee3;
+    }
+    .hero-preload .nk-hero-photo {
+      opacity: 0 !important;
+      transform: scale(0.72) !important;
+    }
+    .hero-preload .hn-big .hn-l {
+      opacity: 0 !important;
+      transform: translateY(90px) !important;
+    }
+    @media (min-width: 768px) {
+      .hero-preload .nk-hero-word.is-left {
+        opacity: 0 !important;
+        transform: translateX(150px) !important;
+      }
+      .hero-preload .nk-hero-word.is-right {
+        opacity: 0 !important;
+        transform: translateX(-150px) !important;
+      }
+    }
+    @media (max-width: 767px) {
+      .hero-preload .nk-hero-word.is-left {
+        opacity: 0 !important;
+        transform: translateY(-35px) !important;
+      }
+      .hero-preload .nk-hero-word.is-right {
+        opacity: 0 !important;
+        transform: translateY(35px) !important;
+      }
+    }
+    .hero-preload .hn-tagrow {
+      opacity: 0 !important;
+      transform: scale(0.4) !important;
+    }
+    .hero-preload .nk-hero-photo .orb {
+      opacity: 0 !important;
+      transform: scale(0) !important;
+    }
+    .hero-preload .nk-hero-sub {
+      opacity: 0 !important;
+      transform: translateY(30px) !important;
+    }
+  </style>
 </head>
 
 <body>
@@ -50,7 +103,7 @@
             <button>About</button><button>Results</button><button>Work</button><button>Journey</button><button>Featured</button><button>Media</button>
           </nav><button class="nk-btn is-outline is-sm">Let's talk</button>
         </header>
-        <section class="nk nk-dark nk-hero">
+        <section class="nk nk-dark nk-hero hero-preload">
           <div class="hn">
             <p class="hn-tagrow" aria-hidden="true"><em class="hn-w">DATA x DRAMA</em></p>
             <h1 class="hn-big"

@@ -219,6 +219,13 @@ function initLoaderAndHeroAnimation() {
   requestAnimationFrame(updateLoader);
 
   function dismissLoaderAndPlayHero() {
+    // 1. Remove hero-preload class so GSAP has full dynamic control
+    const heroSection = document.querySelector(".nk-hero");
+    if (heroSection) heroSection.classList.remove("hero-preload");
+
+    // 2. Play the hero entrance simultaneously as the loader lifts
+    playHeroEntrance();
+
     if (window.gsap && loader) {
       window.gsap.to(loader, {
         yPercent: -100,
@@ -226,12 +233,10 @@ function initLoaderAndHeroAnimation() {
         ease: "power4.inOut",
         onComplete: () => {
           loader.style.display = "none";
-          playHeroEntrance();
         }
       });
     } else {
       if (loader) loader.style.display = "none";
-      playHeroEntrance();
     }
   }
 
